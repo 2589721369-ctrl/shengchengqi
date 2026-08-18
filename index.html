@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 智能网页工作台</title>
+  <title>AI Web Studio - 纯本地智能工作台</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -21,7 +21,7 @@
 </head>
 <body class="text-zinc-800 flex flex-col font-sans antialiased select-none">
 
-  <!-- ==================== 1. 顶部状态栏 (极简单行横排) ==================== -->
+  <!-- ==================== 1. 顶部状态栏 ==================== -->
   <header class="h-12 border-b border-zinc-200 bg-white px-4 flex items-center justify-between shrink-0 z-40 shadow-sm">
     <div class="flex items-center space-x-2 text-xs whitespace-nowrap overflow-hidden">
       <div class="flex items-center space-x-1.5 shrink-0">
@@ -37,7 +37,7 @@
       <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0模块</span>
     </div>
 
-    <!-- 右侧手动保存按钮 -->
+    <!-- 右侧保存按钮 -->
     <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
       <span>💾 保存</span>
     </button>
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1">
-          <span class="text-indigo-600 font-semibold">🧠 架构脑图 & 多模态已就绪:</span>
-          <span>点 ➕ 可传图/代码，长按气泡可删除。</span>
+          <span class="text-indigo-600 font-semibold">🧠 纯本地 SPA 架构模式:</span>
+          <span>零网络跳页，100% 本地内存瞬切。</span>
         </span>
         <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
       </div>
@@ -60,9 +60,9 @@
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
           <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-          <p>输入你的网页需求，或点击输入框左下角的 <b>➕ 号</b>上传设计图、已有的 HTML/JS/CSS 代码文件，AI 将深度结合分析构建！</p>
+          <p>输入你的需求，或点击 <b>➕ 号</b>上传设计图与代码。已锁定纯本地单页架构，切换页面纯靠本地 JS 驱动，绝不会触发 404！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
-            💡 对话与代码已开启实时本地双向落盘，刷新页面绝不丢失。
+            💡 长按任意对话气泡 0.6 秒可单独删除。
           </div>
         </div>
       </div>
@@ -70,10 +70,10 @@
       <!-- 生成进度提示 -->
       <div id="stepProgress" class="hidden px-4 py-2 bg-indigo-50 border-t border-indigo-100 text-indigo-700 text-[11px] flex items-center justify-center space-x-2 shrink-0">
         <svg class="animate-spin h-3.5 w-3.5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span id="stepProgressText">AI 正在深度思考并编写代码...</span>
+        <span id="stepProgressText">AI 正在组织纯本地模块代码...</span>
       </div>
 
-      <!-- 输入栏 (含 ➕ 上传区) -->
+      <!-- 输入栏 -->
       <div class="p-3 border-t border-zinc-200 bg-white shrink-0">
         <div class="max-w-3xl mx-auto border border-zinc-300 rounded-2xl focus-within:border-zinc-900 transition bg-white shadow-sm overflow-hidden">
           
@@ -81,9 +81,9 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="描述你的需求，或点 ➕ 上传图片与代码文件让 AI 参考修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="输入需求，或点 ➕ 上传图片与代码文件让 AI 参照修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
-          <!-- 底部工具条：➕ 加号 + 发送按钮 -->
+          <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
             <input type="file" id="fileUploader" multiple accept="image/*,.html,.htm,.js,.css,.json,.txt,.md,.svg" onchange="handleAttachmentUpload(event)" class="hidden">
             
@@ -105,6 +105,7 @@
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+        <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm">桌面</button>
           <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500">平板</button>
@@ -112,8 +113,8 @@
         </div>
 
         <div class="flex items-center space-x-2">
-          <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="currentRenderPath">index.html</span>
-          <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="刷新">🔄</button>
+          <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">纯本地沙箱</span>
+          <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="重新编译刷新">🔄</button>
           <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
         </div>
       </div>
@@ -140,7 +141,7 @@
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
           <h2 class="text-base font-bold text-zinc-900">自定义中转站 API 配置</h2>
-          <p class="text-xs text-zinc-500">支持任意第三方中转端点，配置与模型会自动保存并在导出 JSON 时包含。</p>
+          <p class="text-xs text-zinc-500">支持任意第三方中转端点，配置会自动保存并在导出 JSON 时包含。</p>
         </div>
 
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
@@ -148,18 +149,18 @@
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Base URL</label>
               <input id="apiBaseUrl" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">支持任意第三方端点（系统会自动纠错补全 /v1）</span>
+              <span class="text-[10px] text-zinc-400 mt-1 block">系统会自动纠错补全 /v1</span>
             </div>
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Key</label>
               <input id="apiKey" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">仅保存在当前浏览器本地及导出 JSON 中</span>
+              <span class="text-[10px] text-zinc-400 mt-1 block">仅保存在当前本地及导出 JSON 中</span>
             </div>
           </div>
 
           <div class="pt-2 border-t border-zinc-100">
             <label class="text-xs font-medium text-zinc-700 block mb-1">
-              使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入</span>
+              使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入修改</span>
             </label>
             <div class="flex space-x-2">
               <input id="customModelInput" type="text" placeholder="例如: gpt-4o, claude-3-5-sonnet, deepseek-chat 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
@@ -191,7 +192,7 @@
       </div>
     </section>
 
-    <!-- ========== 视图 4：其他设置 (导入导出顶置呈现) ========== -->
+    <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
@@ -199,10 +200,8 @@
           <p class="text-xs text-zinc-500">导出的 JSON 备份包含你的全部文件、架构脑图、快照、对话以及 API 配置设定。</p>
         </div>
 
-        <!-- 🌟 顶置大按钮：全量 JSON 导出、JSON 导入、ZIP 导出 -->
+        <!-- 🌟 顶置三大卡片 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          
-          <!-- 1. 导出 JSON 全量备份 -->
           <button onclick="exportProjectJson()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📄</span>
             <div>
@@ -211,7 +210,6 @@
             </div>
           </button>
 
-          <!-- 2. 导入 JSON 全量备份 -->
           <label class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 cursor-pointer transition">
             <span class="text-xl">📥</span>
             <div>
@@ -221,7 +219,6 @@
             <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
 
-          <!-- 3. 打包导出 ZIP -->
           <button onclick="exportZip()" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📦</span>
             <div>
@@ -231,7 +228,6 @@
           </button>
         </div>
 
-        <!-- 次级操作条 -->
         <div class="flex flex-wrap gap-2">
           <button onclick="persistAllData(true)" class="px-3.5 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl shadow-2xs">
             💾 立即保存到浏览器
@@ -244,7 +240,7 @@
           </button>
         </div>
 
-        <!-- AI 后台认知图谱展示区 -->
+        <!-- 架构图谱 -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
@@ -322,37 +318,39 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_STATE_PERMANENT_V4';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V5';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图
-    let chatHistory = [];           // 对话记忆 (已做轻量化处理)
-    let snapshots = [];             // 快照检查点 (最大保持10个防止超限)
-    let remoteModels = [];          // 从中转站拉取的模型列表
+    let chatHistory = [];           // 对话记忆
+    let snapshots = [];             // 快照检查点
+    let remoteModels = [];          // 模型列表
     let selectedModel = '';         // 当前选定模型
-    let currentActivePage = 'index.html';
     let pendingDeleteIndex = null;
     let pendingAttachments = [];    // 待发送的附件
 
+    // 🌟 核心升级：严格约束 AI 采用纯本地 SPA 模块化开发，严禁物理跳页触发 404
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
-你负责为用户开发和一步一步迭代一个多文件纯前端工程。
+你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【工作规范】：
-1. 始终以 \`index.html\` 为主入口。
-2. 模块化规划文件夹：CSS 放 \`css/\`，JS 放 \`js/\`，数据放 \`data/\`，子页面放 \`pages/\`。
-3. 【关键！架构认知图谱】：你必须在每次输出末尾包含或更新项目功能地图：
+【最核心原则 - 纯本地单页架构 (SPA) 规范】：
+1. 始终以 \`index.html\` 为主页面入口。
+2. 模块化文件规划：CSS 放入 \`css/\`（如 \`css/settings.css\`），JS 逻辑放入 \`js/\`（如 \`js/settings.js\`），预设/数据放入 \`data/\`。
+3. 【绝对禁止物理跳转】：严禁使用 \`<a href="xxx.html">\` 或 \`location.href="xxx.html"\` 触发浏览器物理跳转！
+4. 【多视图/设置页实现方式】：所有“子页面”、“设置弹窗”、“功能切换”，必须采用单页面应用（SPA）方式编写：
+   - 方式 A：在页面内部使用切换选项卡/侧边栏，通过 JS 修改 DOM 类名（如 \`display: none / block\`）进行 0 毫秒瞬切。
+   - 方式 B：将设置页做成沉浸式全屏弹窗或抽屉组件（Modal / Drawer），点击“设置”按钮时直接弹出。
+5. 【架构认知图谱】：你必须在每次输出末尾包含或更新项目功能地图：
 <project_map>
 {
   "文件完整路径": "该文件具体负责的功能与模块描述"
 }
 </project_map>
-4. 【代码输出规范】：所有新建或修改的文件必须封装在：
+6. 【代码输出规范】：所有新建或修改的文件必须封装在：
 <file path="文件夹/文件名.扩展名">
 完整源码
 </file>
-5. 用户可能会上传参考图片、或者已有的 HTML/JS/CSS 代码文件。你必须深入分析用户上传的内容，吸纳其代码或视觉设计，并有机融合到当前项目中。
-6. 修改时先检索【项目架构地图】，定位目标文件进行精准修改。
-7. 标签外用简明专业的中文说明改动点与寻址逻辑。`;
+7. 标签外用简明专业的中文说明改动点。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -469,7 +467,7 @@
     }
 
     // ==========================================
-    // AI 对话发送 (智能 URL 纠错 + 详细报错 + 及时落盘)
+    // AI 对话发送
     // ==========================================
     async function sendMessage() {
       const input = document.getElementById('promptInput');
@@ -494,12 +492,10 @@
       }
 
       input.value = '';
-
       const currentAttachCopies = [...pendingAttachments];
       pendingAttachments = [];
       renderAttachmentPreviews();
 
-      // 💡 轻量化存储：只存名字与类型，不存几兆的 Base64 避免撑爆 5MB
       chatHistory.push({
         role: "user",
         content: prompt || '（用户上传了附件/图片并请求分析）',
@@ -507,9 +503,9 @@
       });
       renderChatMessages();
 
-      // 🌟 用户发送后立刻落盘保存，杜绝刷新丢失
+      // 及时落盘保存
       persistAllData();
-      setLoading(true, `中转站 [${model}] 正在请求与构筑代码...`);
+      setLoading(true, `中转站 [${model}] 正在编写纯本地代码...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
         ? JSON.stringify(projectMap, null, 2) 
@@ -529,7 +525,7 @@
         }
       });
 
-      const fullTextPrompt = `【当前已知项目架构地图】:\n${mapStr}\n\n${attachedCodeContext}\n\n【用户新指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n请根据架构地图与上传内容匹配相关文件进行修改或创建新模块，并在末尾更新 <project_map>。`;
+      const fullTextPrompt = `【当前已知项目架构地图】:\n${mapStr}\n\n${attachedCodeContext}\n\n【用户新指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【注意】：所有界面切换（如进入设置页）必须以纯本地 SPA（DOM显示切换或弹窗组件）方式实现，严禁生成任何会向外跳转的 <a> 链接！\n请修改或新增文件，并在末尾更新 <project_map>。`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -589,7 +585,7 @@
       } catch (err) {
         chatHistory.push({ 
           role: "system", 
-          content: `❌ 请求失败原因分析：\n${err.message}\n\n💡 检查排查：\n1. API Base URL 是否为 https://xxx.com/v1\n2. 该中转站渠道的模型名是否可用（可换 gpt-4o-mini 或 deepseek-chat 测试）\n3. 若显示 Failed to fetch，说明中转站服务器未开启浏览器跨域(CORS)支持。` 
+          content: `❌ 请求失败原因分析：\n${err.message}\n\n💡 检查排查：\n1. API Base URL 是否为 https://xxx.com/v1\n2. 该中转站渠道的模型名是否可用\n3. 若显示 Failed to fetch，说明中转站服务器未开启浏览器跨域(CORS)支持。` 
         });
         renderChatMessages();
         persistAllData();
@@ -599,12 +595,12 @@
     }
 
     // ==========================================
-    // 🌟 全量 JSON 导出与恢复 (代码、脑图、快照与 API 设置全包)
+    // 🌟 全量 JSON 导出与恢复
     // ==========================================
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "4.0",
+        version: "5.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -616,8 +612,7 @@
           model: selectedModel || document.getElementById('customModelInput').value.trim()
         },
         remoteModels: remoteModels,
-        selectedModel: selectedModel || document.getElementById('customModelInput').value.trim(),
-        currentActivePage: currentActivePage
+        selectedModel: selectedModel || document.getElementById('customModelInput').value.trim()
       };
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -640,7 +635,6 @@
             snapshots = data.snapshots || [];
             remoteModels = data.remoteModels || [];
             selectedModel = data.selectedModel || '';
-            currentActivePage = data.currentActivePage || 'index.html';
 
             if (data.apiConfig) {
               document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
@@ -894,7 +888,7 @@
     }
 
     // ==========================================
-    // 虚拟文件打包与沙箱预览
+    // 纯本地沙箱打包与渲染
     // ==========================================
     function parseFilesFromOutput(text) {
       const regex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
@@ -910,41 +904,39 @@
       return updated;
     }
 
-    function refreshPreview(targetPath = null) {
-      if (targetPath) currentActivePage = targetPath;
-      if (!virtualFiles[currentActivePage]) {
-        currentActivePage = virtualFiles['index.html'] ? 'index.html' : Object.keys(virtualFiles).find(k => k.endsWith('.html')) || 'index.html';
-      }
-
-      document.getElementById('currentRenderPath').innerText = currentActivePage;
+    function refreshPreview() {
       const iframe = document.getElementById('previewFrame');
-      const rawHtml = virtualFiles[currentActivePage];
+      const rawHtml = virtualFiles['index.html'] || Object.values(virtualFiles)[0];
 
       if (!rawHtml) {
         iframe.srcdoc = `<div style="font-family:sans-serif;display:flex;height:100vh;align-items:center;justify-content:center;color:#a1a1aa;background:#fafafa;">
-          <p>✦ 正在等待 AI 构筑项目代码...</p>
+          <p>✦ 正在等待 AI 构筑本地项目代码...</p>
         </div>`;
         return;
       }
-      iframe.srcdoc = bundleVirtualProject(rawHtml, currentActivePage);
+      iframe.srcdoc = bundleVirtualProject(rawHtml);
     }
 
-    function bundleVirtualProject(html, currentHtmlPath) {
-      const currentDir = currentHtmlPath.includes('/') ? currentHtmlPath.substring(0, currentHtmlPath.lastIndexOf('/') + 1) : '';
-
+    function bundleVirtualProject(html) {
+      // 1. 内联全部 CSS
       for (const [path, code] of Object.entries(virtualFiles)) {
         if (path.endsWith('.css')) {
-          const rel = path.replace(currentDir, '');
-          const pattern = new RegExp(`<link[^>]+href=["'](\\./)?(${escapeRegex(path)}|${escapeRegex(rel)})["'][^>]*>`, 'gi');
+          const fileName = path.split('/').pop();
+          const pattern = new RegExp(`<link[^>]+href=["'][^"']*${escapeRegex(fileName)}["'][^>]*>`, 'gi');
           html = html.replace(pattern, `<style>/* [Bundle] ${path} */\n${code}</style>`);
         }
+      }
+
+      // 2. 内联全部 JS
+      for (const [path, code] of Object.entries(virtualFiles)) {
         if (path.endsWith('.js')) {
-          const rel = path.replace(currentDir, '');
-          const pattern = new RegExp(`<script[^>]+src=["'](\\./)?(${escapeRegex(path)}|${escapeRegex(rel)})["'][^>]*>\\s*<\\/script>`, 'gi');
+          const fileName = path.split('/').pop();
+          const pattern = new RegExp(`<script[^>]+src=["'][^"']*${escapeRegex(fileName)}["'][^>]*>\\s*<\\/script>`, 'gi');
           html = html.replace(pattern, `<script>/* [Bundle] ${path} */\n${code}<\/script>`);
         }
       }
 
+      // 3. 沙箱安全探针：拦截所有意外物理跳转，杜绝 404
       const runtimeBridge = `
       <script>
         ['log', 'warn', 'error', 'info'].forEach(t => {
@@ -956,13 +948,14 @@
         });
         window.onerror = (m, u, l) => window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: m + ' (行 ' + l + ')' }, '*');
         
+        // 彻底拦截所有向外的 <a> 物理跳转
         document.addEventListener('click', e => {
           const a = e.target.closest('a');
           if (a && a.getAttribute('href')) {
             const h = a.getAttribute('href').trim();
-            if (!h.startsWith('http') && !h.startsWith('#') && !h.startsWith('javascript:')) {
+            if (!h.startsWith('javascript:') && !h.startsWith('#')) {
               e.preventDefault();
-              window.parent.postMessage({ type: 'NAVIGATE', path: h }, '*');
+              console.warn('[沙箱安全拦截] 已阻止跳出本地页面: ' + h);
             }
           }
         });
@@ -973,14 +966,6 @@
 
     function handleIframeMessage(e) {
       if (!e.data) return;
-      if (e.data.type === 'NAVIGATE') {
-        let t = e.data.path.replace(/^\.\//, '');
-        if (virtualFiles[t]) refreshPreview(t);
-        else {
-          const found = Object.keys(virtualFiles).find(k => k.endsWith(t));
-          if (found) refreshPreview(found);
-        }
-      }
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
     }
 
@@ -1031,7 +1016,7 @@
       if (confirm(`确认回滚到 "${s.title}"？`)) {
         virtualFiles = JSON.parse(JSON.stringify(s.files));
         projectMap = JSON.parse(JSON.stringify(s.projectMap || {}));
-        refreshPreview('index.html');
+        refreshPreview();
         refreshUIElements();
         persistAllData();
         showToast('已回滚！');
@@ -1055,15 +1040,14 @@
           baseUrl: document.getElementById('apiBaseUrl').value.trim(),
           apiKey: document.getElementById('apiKey').value.trim(),
           model: selectedModel || document.getElementById('customModelInput').value.trim()
-        },
-        currentActivePage
+        }
       };
 
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         if (showNotif) showToast('💾 所有数据与对话已成功保存！');
       } catch (e) {
-        console.warn('存储空间预警，正在执行清理...', e);
+        console.warn('存储空间预警，清理快照...', e);
         try {
           payload.snapshots = [];
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -1085,7 +1069,6 @@
         snapshots = s.snapshots || [];
         remoteModels = s.remoteModels || [];
         selectedModel = s.selectedModel || '';
-        currentActivePage = s.currentActivePage || 'index.html';
 
         if (s.apiConfig) {
           document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || '';
