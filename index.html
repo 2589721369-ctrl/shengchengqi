@@ -14,7 +14,7 @@
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
-    .device-transition { transition: width 0.25s ease, height 0.25s ease; }
+    .device-transition { transition: width 0.25s ease, height 0.25s ease, transform 0.25s ease; }
     .msg-bubble { user-select: none; -webkit-user-select: none; }
     .msg-bubble:active { transform: scale(0.985); }
   </style>
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1">
-          <span class="text-indigo-600 font-semibold">🧠 纯本地 SPA 架构模式:</span>
-          <span>零网络跳页，100% 本地内存瞬切。</span>
+          <span class="text-indigo-600 font-semibold">🧠 纯本地 SPA 架构:</span>
+          <span>长按消息可复制/删除/重新制作本轮。</span>
         </span>
         <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
       </div>
@@ -60,9 +60,9 @@
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
           <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-          <p>输入你的需求，或点击 <b>➕ 号</b>上传设计图与代码。已锁定纯本地单页架构，切换页面纯靠本地 JS 驱动，绝不会触发 404！</p>
+          <p>输入你的需求，或点 <b>➕ 号</b>传图与代码。长按气泡可随时<b>复制文字</b>或<b>让 AI 撤销本轮文件并重新制作</b>！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
-            💡 长按任意对话气泡 0.6 秒可单独删除。
+            💡 本地双向落盘已开启，无论何时刷新页面数据永不丢失。
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@
         <span id="stepProgressText">AI 正在组织纯本地模块代码...</span>
       </div>
 
-      <!-- 输入栏 -->
+      <!-- 输入栏 (含 ➕ 上传区) -->
       <div class="p-3 border-t border-zinc-200 bg-white shrink-0">
         <div class="max-w-3xl mx-auto border border-zinc-300 rounded-2xl focus-within:border-zinc-900 transition bg-white shadow-sm overflow-hidden">
           
@@ -107,20 +107,21 @@
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
         <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
-          <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm">桌面</button>
-          <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500">平板</button>
-          <button onclick="setDeviceViewport('mobile')" id="btn-mobile" class="px-2 py-0.5 rounded font-medium text-zinc-500">手机</button>
+          <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
+          <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">平板</button>
+          <button onclick="setDeviceViewport('mobile')" id="btn-mobile" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">手机</button>
         </div>
 
         <div class="flex items-center space-x-2">
-          <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">纯本地沙箱</span>
+          <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="scaleIndicator">100%</span>
           <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="重新编译刷新">🔄</button>
           <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
         </div>
       </div>
 
-      <div class="flex-1 p-3 flex items-center justify-center overflow-auto bg-zinc-200/60">
-        <div id="deviceContainer" class="w-full h-full device-transition bg-white rounded-xl shadow-lg border border-zinc-300 overflow-hidden relative">
+      <!-- 🌟 画布包裹容器 (支持自动居中等比缩小) -->
+      <div id="previewCanvasWrapper" class="flex-1 p-2 md:p-4 flex items-center justify-center overflow-hidden bg-zinc-200/70 relative">
+        <div id="deviceContainer" class="device-transition bg-white shadow-xl overflow-hidden relative flex flex-col shrink-0">
           <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" class="w-full h-full border-0"></iframe>
         </div>
       </div>
@@ -200,7 +201,7 @@
           <p class="text-xs text-zinc-500">导出的 JSON 备份包含你的全部文件、架构脑图、快照、对话以及 API 配置设定。</p>
         </div>
 
-        <!-- 🌟 顶置三大卡片 -->
+        <!-- 顶置三大卡片 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button onclick="exportProjectJson()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📄</span>
@@ -296,16 +297,34 @@
 
   </nav>
 
-  <!-- ==================== 4. 长按删除弹窗 ==================== -->
-  <div id="deleteConfirmModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50">
-    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-72 max-w-[90vw] shadow-2xl space-y-3">
+  <!-- ==================== 4. 长按操作菜单弹窗 ==================== -->
+  <div id="actionMenuModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-80 max-w-[92vw] shadow-2xl space-y-3">
       <div class="text-center">
-        <h4 class="text-sm font-bold text-zinc-900">删除此条对话？</h4>
-        <p class="text-xs text-zinc-500 mt-1">此内容将从 AI 后续记忆上下文中彻底移除。</p>
+        <h4 id="actionMenuTitle" class="text-sm font-bold text-zinc-900">消息选项</h4>
+        <p id="actionMenuDesc" class="text-xs text-zinc-500 mt-0.5">请选择要对该条消息执行的操作</p>
       </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeDeleteModal()" class="flex-1 py-1.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium">取消</button>
-        <button id="confirmDeleteBtn" class="flex-1 py-1.5 text-xs bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium shadow-sm">确认删除</button>
+
+      <div class="space-y-2 pt-1">
+        <!-- 重新制作按钮 -->
+        <button id="menuRedoBtn" onclick="executeMenuRedo()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center justify-center space-x-1.5 transition hidden">
+          <span>🔄 重新制作此轮 (撤销本轮文件改动并重试)</span>
+        </button>
+
+        <!-- 复制内容按钮 -->
+        <button onclick="executeMenuCopy()" class="w-full py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+          <span>📋 复制文本内容</span>
+        </button>
+
+        <!-- 删除消息按钮 -->
+        <button onclick="executeMenuDelete()" class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+          <span>🗑️ 删除此条记录</span>
+        </button>
+
+        <!-- 取消按钮 -->
+        <button onclick="closeActionMenu()" class="w-full py-2 px-3 text-zinc-400 hover:text-zinc-600 text-xs font-medium transition pt-1">
+          取消
+        </button>
       </div>
     </div>
   </div>
@@ -318,7 +337,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V5';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V6';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图
@@ -326,20 +345,18 @@
     let snapshots = [];             // 快照检查点
     let remoteModels = [];          // 模型列表
     let selectedModel = '';         // 当前选定模型
-    let pendingDeleteIndex = null;
+    let selectedActionIndex = null; // 当前长按选中的消息索引
     let pendingAttachments = [];    // 待发送的附件
+    let currentViewportMode = 'desktop'; // 当前视口模式
 
-    // 🌟 核心升级：严格约束 AI 采用纯本地 SPA 模块化开发，严禁物理跳页触发 404
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
 【最核心原则 - 纯本地单页架构 (SPA) 规范】：
 1. 始终以 \`index.html\` 为主页面入口。
-2. 模块化文件规划：CSS 放入 \`css/\`（如 \`css/settings.css\`），JS 逻辑放入 \`js/\`（如 \`js/settings.js\`），预设/数据放入 \`data/\`。
-3. 【绝对禁止物理跳转】：严禁使用 \`<a href="xxx.html">\` 或 \`location.href="xxx.html"\` 触发浏览器物理跳转！
-4. 【多视图/设置页实现方式】：所有“子页面”、“设置弹窗”、“功能切换”，必须采用单页面应用（SPA）方式编写：
-   - 方式 A：在页面内部使用切换选项卡/侧边栏，通过 JS 修改 DOM 类名（如 \`display: none / block\`）进行 0 毫秒瞬切。
-   - 方式 B：将设置页做成沉浸式全屏弹窗或抽屉组件（Modal / Drawer），点击“设置”按钮时直接弹出。
+2. 模块化文件规划：CSS 放入 \`css/\`，JS 逻辑放入 \`js/\`，数据放入 \`data/\`。
+3. 【绝对禁止物理跳转】：严禁使用 \`<a href="xxx.html">\` 或 \`location.href="xxx.html"\` 触发浏览器物理跳转！所有页面切换、设置项必须在本地单页内通过 DOM 显隐切换或弹窗组件实现。
+4. 【主动清理旧文件】：如果你在重构或删除某个旧功能，可以输出 \`<delete_file path="要删除的文件路径"/>\`，系统会自动将该文件从虚拟文件系统与架构图谱中彻底清除。
 5. 【架构认知图谱】：你必须在每次输出末尾包含或更新项目功能地图：
 <project_map>
 {
@@ -363,6 +380,7 @@
       });
 
       window.addEventListener('message', handleIframeMessage);
+      window.addEventListener('resize', handleWindowResize);
       refreshUIElements();
     });
 
@@ -380,11 +398,77 @@
       document.getElementById(`nav-${tabKey}-icon`).className = "w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm";
       document.getElementById(`nav-${tabKey}-text`).className = "text-[11px] font-bold mt-0.5";
 
-      if (tabKey === 'preview') refreshPreview();
+      if (tabKey === 'preview') {
+        refreshPreview();
+        setTimeout(() => setDeviceViewport(), 40); // 确保 DOM 展开后计算尺寸
+      }
       if (tabKey === 'api') renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
       if (tabKey === 'settings') {
         renderSnapshotsList();
         renderProjectMapUI();
+      }
+    }
+
+    // ==========================================
+    // 🌟 核心优化：智能等比缩放多设备视口
+    // ==========================================
+    function setDeviceViewport(mode) {
+      if (mode) currentViewportMode = mode;
+      mode = currentViewportMode;
+
+      const wrapper = document.getElementById('previewCanvasWrapper');
+      const container = document.getElementById('deviceContainer');
+      const scaleIndicator = document.getElementById('scaleIndicator');
+      if (!wrapper || !container) return;
+
+      ['desktop', 'tablet', 'mobile'].forEach(id => {
+        const btn = document.getElementById(`btn-${id}`);
+        if (btn) btn.className = "px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition";
+      });
+      const activeBtn = document.getElementById(`btn-${mode}`);
+      if (activeBtn) activeBtn.className = "px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition";
+
+      // 计算可用视口像素 (留出内边距)
+      const wrapW = Math.max(wrapper.clientWidth - 20, 100);
+      const wrapH = Math.max(wrapper.clientHeight - 20, 100);
+
+      if (mode === 'desktop') {
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.transform = 'none';
+        container.style.borderRadius = '0.75rem';
+        container.style.border = '1px solid #e4e4e7';
+        if (scaleIndicator) scaleIndicator.innerText = '桌面 100%';
+      } else if (mode === 'tablet') {
+        const baseW = 768;
+        const baseH = 1024;
+        // 自动计算缩放比例，让 768x1024 平板在手机屏幕里完整展现
+        const scale = Math.min(wrapW / baseW, wrapH / baseH, 1);
+        container.style.width = `${baseW}px`;
+        container.style.height = `${baseH}px`;
+        container.style.transform = `scale(${scale.toFixed(3)})`;
+        container.style.transformOrigin = 'center center';
+        container.style.borderRadius = '1.25rem';
+        container.style.border = '4px solid #3f3f46';
+        if (scaleIndicator) scaleIndicator.innerText = `平板 ${Math.round(scale * 100)}%`;
+      } else if (mode === 'mobile') {
+        const baseW = 375;
+        const baseH = 667;
+        // 自动计算缩放比例，让 375x667 手机模型在当前屏幕里 100% 完整可见（上下绝不切边）
+        const scale = Math.min(wrapW / baseW, wrapH / baseH, 1);
+        container.style.width = `${baseW}px`;
+        container.style.height = `${baseH}px`;
+        container.style.transform = `scale(${scale.toFixed(3)})`;
+        container.style.transformOrigin = 'center center';
+        container.style.borderRadius = '2rem';
+        container.style.border = '5px solid #27272a';
+        if (scaleIndicator) scaleIndicator.innerText = `手机 ${Math.round(scale * 100)}%`;
+      }
+    }
+
+    function handleWindowResize() {
+      if (!document.getElementById('view-preview').classList.contains('hidden')) {
+        setDeviceViewport();
       }
     }
 
@@ -485,7 +569,7 @@
         return;
       }
 
-      // 🛠️ 智能纠错 Base URL
+      // 智能纠错 Base URL
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
       if (!baseUrl.endsWith('/v1')) {
         baseUrl = baseUrl + '/v1';
@@ -496,14 +580,20 @@
       pendingAttachments = [];
       renderAttachmentPreviews();
 
+      // 记录发送前干净状态快照 (用于“重新制作”时 100% 撤回)
+      const preState = {
+        files: JSON.parse(JSON.stringify(virtualFiles)),
+        projectMap: JSON.parse(JSON.stringify(projectMap))
+      };
+
       chatHistory.push({
         role: "user",
         content: prompt || '（用户上传了附件/图片并请求分析）',
-        attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size }))
+        attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })),
+        preState: preState
       });
       renderChatMessages();
 
-      // 及时落盘保存
       persistAllData();
       setLoading(true, `中转站 [${model}] 正在编写纯本地代码...`);
 
@@ -525,7 +615,7 @@
         }
       });
 
-      const fullTextPrompt = `【当前已知项目架构地图】:\n${mapStr}\n\n${attachedCodeContext}\n\n【用户新指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【注意】：所有界面切换（如进入设置页）必须以纯本地 SPA（DOM显示切换或弹窗组件）方式实现，严禁生成任何会向外跳转的 <a> 链接！\n请修改或新增文件，并在末尾更新 <project_map>。`;
+      const fullTextPrompt = `【当前已知项目架构地图】:\n${mapStr}\n\n${attachedCodeContext}\n\n【用户新指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【注意】：所有界面切换必须以纯本地 SPA（DOM显示切换或弹窗）方式实现，严禁生成向外跳转的 <a> 链接！若需清理无用旧文件，请输出 <delete_file path="..."/>。\n请修改或新增文件，并在末尾更新 <project_map>。`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -595,12 +685,12 @@
     }
 
     // ==========================================
-    // 🌟 全量 JSON 导出与恢复
+    // 全量 JSON 导出与恢复
     // ==========================================
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "5.0",
+        version: "6.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -647,7 +737,7 @@
             refreshPreview();
             refreshUIElements();
             persistAllData();
-            showToast('🎉 全量备份导入恢复成功！');
+            showToast('🎉 全量备份恢复成功！');
             switchBottomTab('preview');
           }
         } catch (err) {
@@ -700,14 +790,14 @@
 
         if (list.length > 0) {
           remoteModels = Array.from(new Set([...list]));
-          showToast(`🎉 成功从中转站拉取 ${list.length} 个模型！`);
+          showToast(`🎉 成功拉取 ${list.length} 个模型！`);
           renderModelsGrid();
           persistAllData();
         } else {
-          showToast('中转站返回了空模型列表，可手动输入模型名');
+          showToast('中转站返回了空列表，可手动输入模型名');
         }
       } catch (err) {
-        showToast(`❌ 拉取失败: ${err.message} (建议直接手动输入模型名)`);
+        showToast(`❌ 拉取失败: ${err.message}`);
       } finally {
         btn.disabled = false;
         btn.innerText = '🔄 拉取中转站模型列表';
@@ -778,7 +868,7 @@
     }
 
     // ==========================================
-    // 对话渲染与长按删除
+    // 对话长按操作菜单 (复制 / 重做本轮 / 删除)
     // ==========================================
     function renderChatMessages() {
       const box = document.getElementById('chatMessages');
@@ -786,7 +876,7 @@
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
             <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-            <p>输入你的需求，或点击 ➕ 上传参考图与已有代码文件。</p>
+            <p>输入你的需求，或点 ➕ 上传参考图与已有代码文件。</p>
           </div>
         `;
         return;
@@ -809,7 +899,7 @@
           return `
             <div class="flex flex-col items-end msg-container" data-index="${index}">
               ${attachBadges}
-              <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按可删除">
+              <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按弹出操作菜单">
                 ${escapeHtml(msg.content)}
               </div>
             </div>
@@ -817,6 +907,7 @@
         } else if (msg.role === 'assistant') {
           const cleanExplanation = msg.content
             .replace(/<file[\s\S]*?<\/file>/gi, '')
+            .replace(/<delete_file[\s\S]*?\/>/gi, '')
             .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
             .trim() || '已完成代码与架构寻址更新。';
 
@@ -826,14 +917,14 @@
 
           return `
             <div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}">
-              <div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer" title="长按可删除">
+              <div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer" title="长按弹出操作菜单">
                 <div>${escapeHtml(cleanExplanation)}</div>
                 ${filesTag}
               </div>
             </div>
           `;
         } else {
-          return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap" data-index="${index}">${escapeHtml(msg.content)}</div>`;
+          return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap cursor-pointer" data-index="${index}" title="长按可删除">${escapeHtml(msg.content)}</div>`;
         }
       }).join('');
 
@@ -845,7 +936,7 @@
       document.querySelectorAll('.msg-container').forEach(el => {
         let timer = null;
         const index = parseInt(el.getAttribute('data-index'), 10);
-        const start = () => { timer = setTimeout(() => triggerDeletePrompt(index), 600); };
+        const start = () => { timer = setTimeout(() => openActionMenu(index), 600); };
         const clear = () => { if (timer) clearTimeout(timer); };
 
         el.addEventListener('touchstart', start, { passive: true });
@@ -857,27 +948,115 @@
       });
     }
 
-    function triggerDeletePrompt(index) {
-      pendingDeleteIndex = index;
-      document.getElementById('deleteConfirmModal').classList.remove('hidden');
-      document.getElementById('deleteConfirmModal').classList.add('flex');
+    function openActionMenu(index) {
+      selectedActionIndex = index;
+      const msg = chatHistory[index];
+      if (!msg) return;
+
+      const modal = document.getElementById('actionMenuModal');
+      const title = document.getElementById('actionMenuTitle');
+      const desc = document.getElementById('actionMenuDesc');
+      const redoBtn = document.getElementById('menuRedoBtn');
+
+      if (msg.role === 'user') {
+        title.innerText = '用户指令选项';
+        desc.innerText = '可复制指令文本或删除该条记录';
+        redoBtn.classList.add('hidden');
+      } else if (msg.role === 'assistant') {
+        title.innerText = 'AI 回复选项';
+        desc.innerText = '可复制、删除、或重置文件重新制作';
+        if (index > 0 && chatHistory[index - 1].role === 'user') {
+          redoBtn.classList.remove('hidden');
+        } else {
+          redoBtn.classList.add('hidden');
+        }
+      } else {
+        title.innerText = '系统消息';
+        desc.innerText = '系统报错通知';
+        redoBtn.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
-    function closeDeleteModal() {
-      document.getElementById('deleteConfirmModal').classList.add('hidden');
-      document.getElementById('deleteConfirmModal').classList.remove('flex');
-      pendingDeleteIndex = null;
+    function closeActionMenu() {
+      const modal = document.getElementById('actionMenuModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      selectedActionIndex = null;
     }
 
-    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-      if (pendingDeleteIndex !== null && chatHistory[pendingDeleteIndex]) {
-        chatHistory.splice(pendingDeleteIndex, 1);
+    function executeMenuCopy() {
+      if (selectedActionIndex === null || !chatHistory[selectedActionIndex]) return;
+      const msg = chatHistory[selectedActionIndex];
+      let copyText = msg.content;
+
+      if (msg.role === 'assistant') {
+        copyText = copyText
+          .replace(/<file[\s\S]*?<\/file>/gi, '')
+          .replace(/<delete_file[\s\S]*?\/>/gi, '')
+          .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
+          .trim();
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(copyText).then(() => {
+          showToast('📋 内容已复制到剪贴板！');
+        }).catch(() => fallbackCopy(copyText));
+      } else {
+        fallbackCopy(copyText);
+      }
+      closeActionMenu();
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('📋 内容已复制到剪贴板！');
+    }
+
+    function executeMenuRedo() {
+      if (selectedActionIndex === null || !chatHistory[selectedActionIndex]) return;
+      const aiMsgIndex = selectedActionIndex;
+      const userMsgIndex = aiMsgIndex - 1;
+
+      if (userMsgIndex >= 0 && chatHistory[userMsgIndex].role === 'user') {
+        const userMsg = chatHistory[userMsgIndex];
+
+        if (userMsg.preState) {
+          virtualFiles = JSON.parse(JSON.stringify(userMsg.preState.files));
+          projectMap = JSON.parse(JSON.stringify(userMsg.preState.projectMap));
+        }
+
+        document.getElementById('promptInput').value = userMsg.content;
+        chatHistory.splice(userMsgIndex, 2);
+        renderChatMessages();
+        refreshPreview();
+        refreshUIElements();
+        persistAllData();
+        closeActionMenu();
+
+        showToast('🔄 已撤销本轮文件改动，正在重新制作...');
+        sendMessage();
+      } else {
+        closeActionMenu();
+      }
+    }
+
+    function executeMenuDelete() {
+      if (selectedActionIndex !== null && chatHistory[selectedActionIndex]) {
+        chatHistory.splice(selectedActionIndex, 1);
         renderChatMessages();
         persistAllData();
-        showToast('已删除此条记录');
+        showToast('已删除该条记录');
       }
-      closeDeleteModal();
-    });
+      closeActionMenu();
+    }
 
     function clearChatHistory() {
       if (confirm('确认清空所有对话？（文件和架构图谱会继续保留）')) {
@@ -891,15 +1070,26 @@
     // 纯本地沙箱打包与渲染
     // ==========================================
     function parseFilesFromOutput(text) {
-      const regex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
-      let match;
       const updated = [];
-      while ((match = regex.exec(text)) !== null) {
+
+      const deleteRegex = /<delete_file\s+path=["']([^"']+)["']\s*\/?>/gi;
+      let delMatch;
+      while ((delMatch = deleteRegex.exec(text)) !== null) {
+        let delPath = delMatch[1].trim().replace(/^\/+/, '');
+        delete virtualFiles[delPath];
+        delete projectMap[delPath];
+        updated.push(`已删除: ${delPath}`);
+      }
+
+      const fileRegex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
+      let match;
+      while ((match = fileRegex.exec(text)) !== null) {
         let path = match[1].trim().replace(/^\/+/, '');
         let content = match[2].trim();
         virtualFiles[path] = content;
         updated.push(path);
       }
+
       refreshUIElements();
       return updated;
     }
@@ -918,7 +1108,6 @@
     }
 
     function bundleVirtualProject(html) {
-      // 1. 内联全部 CSS
       for (const [path, code] of Object.entries(virtualFiles)) {
         if (path.endsWith('.css')) {
           const fileName = path.split('/').pop();
@@ -927,7 +1116,6 @@
         }
       }
 
-      // 2. 内联全部 JS
       for (const [path, code] of Object.entries(virtualFiles)) {
         if (path.endsWith('.js')) {
           const fileName = path.split('/').pop();
@@ -936,7 +1124,6 @@
         }
       }
 
-      // 3. 沙箱安全探针：拦截所有意外物理跳转，杜绝 404
       const runtimeBridge = `
       <script>
         ['log', 'warn', 'error', 'info'].forEach(t => {
@@ -948,7 +1135,6 @@
         });
         window.onerror = (m, u, l) => window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: m + ' (行 ' + l + ')' }, '*');
         
-        // 彻底拦截所有向外的 <a> 物理跳转
         document.addEventListener('click', e => {
           const a = e.target.closest('a');
           if (a && a.getAttribute('href')) {
@@ -1104,17 +1290,6 @@
         showToast('项目已清空');
         switchBottomTab('maker');
       }
-    }
-
-    function setDeviceViewport(mode) {
-      const c = document.getElementById('deviceContainer');
-      ['desktop', 'tablet', 'mobile'].forEach(id => {
-        document.getElementById(`btn-${id}`).className = "px-2 py-0.5 rounded font-medium text-zinc-500";
-      });
-      document.getElementById(`btn-${mode}`).className = "px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm";
-      if (mode === 'desktop') { c.style.width = '100%'; c.style.height = '100%'; }
-      if (mode === 'tablet') { c.style.width = '768px'; c.style.height = '95%'; }
-      if (mode === 'mobile') { c.style.width = '375px'; c.style.height = '667px'; }
     }
 
     function toggleConsoleDrawer() {
