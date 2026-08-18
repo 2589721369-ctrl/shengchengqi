@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 全功能全量版</title>
+  <title>AI Web Studio - 智能网页工作台</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- JSZip & FileSaver -->
+  <!-- JSZip & FileSaver CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
@@ -21,7 +21,7 @@
 </head>
 <body class="text-zinc-800 flex flex-col font-sans antialiased select-none">
 
-  <!-- ==================== 1. 顶部状态栏 ==================== -->
+  <!-- ==================== 1. 顶部状态栏 (极简单行横排) ==================== -->
   <header class="h-12 border-b border-zinc-200 bg-white px-4 flex items-center justify-between shrink-0 z-40 shadow-sm">
     <div class="flex items-center space-x-2 text-xs whitespace-nowrap overflow-hidden">
       <div class="flex items-center space-x-1.5 shrink-0">
@@ -37,7 +37,7 @@
       <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0模块</span>
     </div>
 
-    <!-- 右侧保存按钮 -->
+    <!-- 右侧手动保存按钮 -->
     <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
       <span>💾 保存</span>
     </button>
@@ -51,7 +51,7 @@
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1">
           <span class="text-indigo-600 font-semibold">🧠 架构脑图 & 多模态已就绪:</span>
-          <span>点 ➕ 可传图/代码，AI 结合分析。</span>
+          <span>点 ➕ 可传图/代码，长按气泡可删除。</span>
         </span>
         <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
       </div>
@@ -60,9 +60,9 @@
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
           <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-          <p>点击输入框左下角的 <b>➕ 号</b>，可以上传设计图或 HTML/JS/CSS 代码文件，AI 将深度结合分析。</p>
+          <p>输入你的网页需求，或点击输入框左下角的 <b>➕ 号</b>上传设计图、已有的 HTML/JS/CSS 代码文件，AI 将深度结合分析构建！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
-            💡 随时可在底部【其他设置】一键导出/导入全量 JSON 备份工程。
+            💡 对话与代码已开启实时本地双向落盘，刷新页面绝不丢失。
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入需求，或点击 ➕ 上传图片与代码文件让 AI 参考修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="描述你的需求，或点 ➕ 上传图片与代码文件让 AI 参考修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条：➕ 加号 + 发送按钮 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -148,21 +148,21 @@
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Base URL</label>
               <input id="apiBaseUrl" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">末尾一般带 /v1</span>
+              <span class="text-[10px] text-zinc-400 mt-1 block">支持任意第三方端点（系统会自动纠错补全 /v1）</span>
             </div>
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Key</label>
               <input id="apiKey" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">保存在本地及导出的 JSON 中</span>
+              <span class="text-[10px] text-zinc-400 mt-1 block">仅保存在当前浏览器本地及导出 JSON 中</span>
             </div>
           </div>
 
           <div class="pt-2 border-t border-zinc-100">
             <label class="text-xs font-medium text-zinc-700 block mb-1">
-              当前使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入修改</span>
+              使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入</span>
             </label>
             <div class="flex space-x-2">
-              <input id="customModelInput" type="text" placeholder="例如: gpt-4o, claude-3-5-sonnet, deepseek-v3 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
+              <input id="customModelInput" type="text" placeholder="例如: gpt-4o, claude-3-5-sonnet, deepseek-chat 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
               <button onclick="saveApiSettings()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
                 保存并生效
               </button>
@@ -191,7 +191,7 @@
       </div>
     </section>
 
-    <!-- ========== 视图 4：其他设置 (导入导出置顶醒目呈现) ========== -->
+    <!-- ========== 视图 4：其他设置 (导入导出顶置呈现) ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
@@ -322,13 +322,13 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_FULL_STATE_V3';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_STATE_PERMANENT_V4';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图
-    let chatHistory = [];
-    let snapshots = [];
-    let remoteModels = [];          // 从中转站拉取的模型
+    let chatHistory = [];           // 对话记忆 (已做轻量化处理)
+    let snapshots = [];             // 快照检查点 (最大保持10个防止超限)
+    let remoteModels = [];          // 从中转站拉取的模型列表
     let selectedModel = '';         // 当前选定模型
     let currentActivePage = 'index.html';
     let pendingDeleteIndex = null;
@@ -469,7 +469,7 @@
     }
 
     // ==========================================
-    // AI 对话发送 (包含多模态分析)
+    // AI 对话发送 (智能 URL 纠错 + 详细报错 + 及时落盘)
     // ==========================================
     async function sendMessage() {
       const input = document.getElementById('promptInput');
@@ -478,7 +478,7 @@
       if (!prompt && pendingAttachments.length === 0) return;
 
       const apiKey = document.getElementById('apiKey').value.trim();
-      const baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
       const model = selectedModel || document.getElementById('customModelInput').value.trim();
 
       if (!baseUrl || !apiKey || !model) {
@@ -487,19 +487,29 @@
         return;
       }
 
+      // 🛠️ 智能纠错 Base URL
+      baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+      if (!baseUrl.endsWith('/v1')) {
+        baseUrl = baseUrl + '/v1';
+      }
+
       input.value = '';
 
       const currentAttachCopies = [...pendingAttachments];
       pendingAttachments = [];
       renderAttachmentPreviews();
 
+      // 💡 轻量化存储：只存名字与类型，不存几兆的 Base64 避免撑爆 5MB
       chatHistory.push({
         role: "user",
         content: prompt || '（用户上传了附件/图片并请求分析）',
-        attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size, thumb: a.isImage ? a.content : null }))
+        attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size }))
       });
       renderChatMessages();
-      setLoading(true, `中转站 [${model}] 正在检索架构与附件代码...`);
+
+      // 🌟 用户发送后立刻落盘保存，杜绝刷新丢失
+      persistAllData();
+      setLoading(true, `中转站 [${model}] 正在请求与构筑代码...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
         ? JSON.stringify(projectMap, null, 2) 
@@ -538,7 +548,7 @@
       ];
 
       try {
-        const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
+        const res = await fetch(`${baseUrl}/chat/completions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -551,9 +561,16 @@
           })
         });
 
-        if (!res.ok) throw new Error(`中转站响应错误 (${res.status}): ${await res.text()}`);
+        if (!res.ok) {
+          const errDetail = await res.text();
+          throw new Error(`[HTTP ${res.status}] ${errDetail || res.statusText}`);
+        }
 
         const data = await res.json();
+        if (!data.choices || !data.choices[0]) {
+          throw new Error(`中转站返回了异常数据格式: ${JSON.stringify(data)}`);
+        }
+
         const aiReply = data.choices[0].message.content;
 
         const updatedFiles = parseFilesFromOutput(aiReply);
@@ -568,9 +585,14 @@
           showToast('✨ 代码生成完毕！点击【预览HTML】体验');
         }
         persistAllData();
+
       } catch (err) {
-        chatHistory.push({ role: "system", content: `❌ 请求失败: ${err.message}` });
+        chatHistory.push({ 
+          role: "system", 
+          content: `❌ 请求失败原因分析：\n${err.message}\n\n💡 检查排查：\n1. API Base URL 是否为 https://xxx.com/v1\n2. 该中转站渠道的模型名是否可用（可换 gpt-4o-mini 或 deepseek-chat 测试）\n3. 若显示 Failed to fetch，说明中转站服务器未开启浏览器跨域(CORS)支持。` 
+        });
         renderChatMessages();
+        persistAllData();
       } finally {
         setLoading(false);
       }
@@ -582,7 +604,7 @@
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "3.0",
+        version: "4.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -655,7 +677,7 @@
     }
 
     async function fetchRemoteModels() {
-      const baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
       const apiKey = document.getElementById('apiKey').value.trim();
       const btn = document.getElementById('fetchModelsBtn');
 
@@ -664,11 +686,14 @@
         return;
       }
 
+      baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+      if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
+
       btn.disabled = true;
       btn.innerText = '拉取中...';
 
       try {
-        const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/models`, {
+        const res = await fetch(`${baseUrl}/models`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${apiKey}` }
         });
@@ -814,7 +839,7 @@
             </div>
           `;
         } else {
-          return `<div class="text-center text-[11px] text-red-500 my-1 msg-container" data-index="${index}">${escapeHtml(msg.content)}</div>`;
+          return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap" data-index="${index}">${escapeHtml(msg.content)}</div>`;
         }
       }).join('');
 
@@ -1015,18 +1040,38 @@
     }
 
     function persistAllData(showNotif = false) {
+      if (snapshots.length > 10) {
+        snapshots = snapshots.slice(0, 10);
+      }
+
       const payload = {
-        virtualFiles, projectMap, chatHistory, snapshots, remoteModels, selectedModel,
+        virtualFiles,
+        projectMap,
+        chatHistory,
+        snapshots,
+        remoteModels,
+        selectedModel: selectedModel || document.getElementById('customModelInput').value.trim(),
         apiConfig: {
           baseUrl: document.getElementById('apiBaseUrl').value.trim(),
           apiKey: document.getElementById('apiKey').value.trim(),
           model: selectedModel || document.getElementById('customModelInput').value.trim()
-        }
+        },
+        currentActivePage
       };
+
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        if (showNotif) showToast('💾 记录与中转配置已保存！');
-      } catch (e) { showToast('❌ 保存失败'); }
+        if (showNotif) showToast('💾 所有数据与对话已成功保存！');
+      } catch (e) {
+        console.warn('存储空间预警，正在执行清理...', e);
+        try {
+          payload.snapshots = [];
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+          if (showNotif) showToast('💾 数据已保存（已清理历史快照缓存）');
+        } catch (e2) {
+          if (showNotif) showToast('❌ 存储失败：单次代码过大，建议导出 JSON 备份');
+        }
+      }
     }
 
     function loadStateFromStorage() {
@@ -1040,6 +1085,7 @@
         snapshots = s.snapshots || [];
         remoteModels = s.remoteModels || [];
         selectedModel = s.selectedModel || '';
+        currentActivePage = s.currentActivePage || 'index.html';
 
         if (s.apiConfig) {
           document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || '';
@@ -1047,8 +1093,13 @@
           document.getElementById('customModelInput').value = s.apiConfig.model || '';
           selectedModel = s.apiConfig.model || '';
         }
+
         renderChatMessages();
-      } catch (e) {}
+        refreshPreview();
+        refreshUIElements();
+      } catch (e) {
+        console.error('加载本地存储失败:', e);
+      }
     }
 
     function exportZip() {
