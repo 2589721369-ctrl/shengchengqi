@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 纯本地智能工作台</title>
+  <title>AI Web Studio - 全数据全量版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1">
-          <span class="text-indigo-600 font-semibold">🧠 纯本地 SPA 架构:</span>
-          <span>长按消息可复制/删除/重新制作本轮。</span>
+          <span class="text-indigo-600 font-semibold">🧠 沙箱数据同步已启用:</span>
+          <span>生成的网页内数据自动纳入备份。</span>
         </span>
         <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
       </div>
@@ -60,7 +60,7 @@
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
           <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-          <p>输入你的需求，或点 <b>➕ 号</b>传图与代码。长按气泡可随时<b>复制文字</b>或<b>让 AI 撤销本轮文件并重新制作</b>！</p>
+          <p>输入你的需求，或点 <b>➕ 号</b>传图与代码。你在生成的网页里保存的任何设置、预设与数据，都会同步纳入 JSON 备份！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 本地双向落盘已开启，无论何时刷新页面数据永不丢失。
           </div>
@@ -105,7 +105,6 @@
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
-        <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
           <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">平板</button>
@@ -119,7 +118,7 @@
         </div>
       </div>
 
-      <!-- 画布包裹容器 (支持自动居中等比缩小) -->
+      <!-- 画布包裹容器 (支持自动等比缩放) -->
       <div id="previewCanvasWrapper" class="flex-1 p-2 md:p-4 flex items-center justify-center overflow-hidden bg-zinc-200/70 relative">
         <div id="deviceContainer" class="device-transition bg-white shadow-xl overflow-hidden relative flex flex-col shrink-0">
           <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" class="w-full h-full border-0"></iframe>
@@ -193,33 +192,36 @@
       </div>
     </section>
 
-    <!-- ========== 视图 4：其他设置 (已移除回滚，突出寻址图谱行数) ========== -->
+    <!-- ========== 视图 4：其他设置 (含全量数据与网页内部数据备份) ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
-          <h2 class="text-base font-bold text-zinc-900">项目资产与全量备份</h2>
-          <p class="text-xs text-zinc-500">查看文件代码行数与架构认知、导出 JSON 备份（包含全部代码、图谱与 API 设置）。</p>
+          <h2 class="text-base font-bold text-zinc-900">项目资产与全数据备份导入</h2>
+          <p class="text-xs text-zinc-500">导出的 JSON 包含你的全部代码、图谱、对话、API 配置，以及<b>生成的网页在内部保存的所有设置与预设数据</b>！</p>
         </div>
 
         <!-- 顶置三大卡片 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- 1. 导出全量 JSON 备份 -->
           <button onclick="exportProjectJson()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📄</span>
             <div>
               <div class="text-xs font-bold">导出全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">含代码、图谱及 API 设置</div>
+              <div class="text-[10px] text-zinc-400">含代码、图谱、API 及网页内部数据</div>
             </div>
           </button>
 
+          <!-- 2. 导入全量 JSON 备份 -->
           <label class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 cursor-pointer transition">
             <span class="text-xl">📥</span>
             <div>
               <div class="text-xs font-bold">导入全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">选择 .json 文件一键原样还原</div>
+              <div class="text-[10px] text-zinc-400">选择 .json 文件 100% 完整还原</div>
             </div>
             <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
 
+          <!-- 3. 打包导出 ZIP -->
           <button onclick="exportZip()" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📦</span>
             <div>
@@ -234,12 +236,13 @@
           <button onclick="persistAllData(true)" class="px-3.5 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl shadow-2xs">
             💾 立即保存到浏览器
           </button>
+          <span class="text-[11px] text-zinc-400 font-mono" id="sandboxDataCountLabel">已同步 0 项网页内部数据</span>
           <button onclick="resetEntireProject()" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-xl ml-auto">
             🗑️ 清空所有数据
           </button>
         </div>
 
-        <!-- 🌟 升级版架构寻址图谱 (展示每份文件的代码行数) -->
+        <!-- 架构寻址图谱 (展示每份文件的代码行数) -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center">
             <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
@@ -326,7 +329,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V7';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V8';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图
@@ -336,6 +339,9 @@
     let selectedActionIndex = null; // 当前选中的长按消息索引
     let pendingAttachments = [];    // 待发送附件
     let currentViewportMode = 'desktop'; // 当前视口模式
+    
+    // 🌟 核心新增：记录生成的 HTML 页面内部产生的 localStorage 真实数据！
+    let sandboxStorage = {}; 
 
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
@@ -563,7 +569,8 @@
 
       const preState = {
         files: JSON.parse(JSON.stringify(virtualFiles)),
-        projectMap: JSON.parse(JSON.stringify(projectMap))
+        projectMap: JSON.parse(JSON.stringify(projectMap)),
+        sandboxStorage: JSON.parse(JSON.stringify(sandboxStorage))
       };
 
       chatHistory.push({
@@ -664,16 +671,18 @@
     }
 
     // ==========================================
-    // 全量 JSON 导出与恢复
+    // 🌟 全量 JSON 导出与恢复 (代码、图谱、API、及网页内部数据全包)
     // ==========================================
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "7.0",
+        version: "8.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
         chatHistory: chatHistory,
+        // 🌟 导出网页内部产生的所有 localStorage 真实数据
+        sandboxStorage: sandboxStorage,
         apiConfig: {
           baseUrl: document.getElementById('apiBaseUrl').value.trim(),
           apiKey: document.getElementById('apiKey').value.trim(),
@@ -685,7 +694,7 @@
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       saveAs(blob, `ai-studio-full-backup-${Date.now()}.json`);
-      showToast('🎉 全量工程 JSON 已下载！');
+      showToast('🎉 全量工程 JSON 已下载（含网页内部数据）！');
     }
 
     function importProjectJson(e) {
@@ -702,6 +711,8 @@
             chatHistory = data.chatHistory || [];
             remoteModels = data.remoteModels || [];
             selectedModel = data.selectedModel || '';
+            // 🌟 恢复网页内部产生的数据
+            sandboxStorage = data.sandboxStorage || {};
 
             if (data.apiConfig) {
               document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
@@ -714,7 +725,7 @@
             refreshPreview();
             refreshUIElements();
             persistAllData();
-            showToast('🎉 全量备份恢复成功！');
+            showToast('🎉 全量备份恢复成功！网页内部数据已同步就绪');
             switchBottomTab('preview');
           }
         } catch (err) {
@@ -815,7 +826,7 @@
     }
 
     // ==========================================
-    // 🌟 脑图解析与渲染 (精准统计每个文件的代码行数)
+    // 脑图解析与渲染 (精准统计每个文件的代码行数)
     // ==========================================
     function parseProjectMapFromOutput(text) {
       const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
@@ -833,7 +844,6 @@
       const container = document.getElementById('projectMapContainer');
       const totalBadge = document.getElementById('totalLinesBadge');
       
-      // 取虚拟文件与脑图所有路径的并集
       const allPaths = Array.from(new Set([...Object.keys(virtualFiles), ...Object.keys(projectMap)]));
       
       if (allPaths.length === 0) {
@@ -846,7 +856,6 @@
 
       container.innerHTML = allPaths.map(path => {
         const content = virtualFiles[path] || '';
-        // 计算真实代码行数
         const lines = content ? content.split('\n').length : 0;
         totalLinesCount += lines;
 
@@ -1030,10 +1039,12 @@
       if (userMsgIndex >= 0 && chatHistory[userMsgIndex].role === 'user') {
         const userMsg = chatHistory[userMsgIndex];
 
-        // 彻底撤销本轮文件与脑图变动
         if (userMsg.preState) {
           virtualFiles = JSON.parse(JSON.stringify(userMsg.preState.files));
           projectMap = JSON.parse(JSON.stringify(userMsg.preState.projectMap));
+          if (userMsg.preState.sandboxStorage) {
+            sandboxStorage = JSON.parse(JSON.stringify(userMsg.preState.sandboxStorage));
+          }
         }
 
         document.getElementById('promptInput').value = userMsg.content;
@@ -1062,7 +1073,7 @@
     }
 
     function clearChatHistory() {
-      if (confirm('确认清空所有对话？（文件和架构图谱会继续保留）')) {
+      if (confirm('确认清空所有对话？（文件、架构图谱及网页内部数据会继续保留）')) {
         chatHistory = [];
         renderChatMessages();
         persistAllData();
@@ -1070,7 +1081,7 @@
     }
 
     // ==========================================
-    // 纯本地沙箱打包与渲染 (支持 AI 主动删除文件)
+    // 纯本地沙箱打包与渲染 (带沙箱独立存储注入)
     // ==========================================
     function parseFilesFromOutput(text) {
       const updated = [];
@@ -1127,8 +1138,44 @@
         }
       }
 
+      // 安全序列化沙箱存储初值
+      const serializedSandboxStorage = encodeURIComponent(JSON.stringify(sandboxStorage));
+
       const runtimeBridge = `
       <script>
+        // 🌟 虚拟独立沙箱存储引擎：无缝代理并持久化 iframe 内部产生的 localStorage
+        (function() {
+          let memoryStorage = {};
+          try {
+            memoryStorage = JSON.parse(decodeURIComponent("${serializedSandboxStorage}")) || {};
+          } catch(e) { memoryStorage = {}; }
+
+          try {
+            const customStorage = {
+              getItem: function(k) { return memoryStorage.hasOwnProperty(k) ? memoryStorage[k] : null; },
+              setItem: function(k, v) {
+                memoryStorage[k] = String(v);
+                window.parent.postMessage({ type: 'SANDBOX_STORAGE_SET', key: k, value: String(v) }, '*');
+              },
+              removeItem: function(k) {
+                delete memoryStorage[k];
+                window.parent.postMessage({ type: 'SANDBOX_STORAGE_REMOVE', key: k }, '*');
+              },
+              clear: function() {
+                for (const k in memoryStorage) delete memoryStorage[k];
+                window.parent.postMessage({ type: 'SANDBOX_STORAGE_CLEAR' }, '*');
+              },
+              key: function(i) { return Object.keys(memoryStorage)[i] || null; },
+              get length() { return Object.keys(memoryStorage).length; }
+            };
+
+            Object.defineProperty(window, 'localStorage', {
+              get: function() { return customStorage; },
+              configurable: true
+            });
+          } catch(e) {}
+        })();
+
         ['log', 'warn', 'error', 'info'].forEach(t => {
           const o = console[t];
           console[t] = (...a) => {
@@ -1156,6 +1203,23 @@
     function handleIframeMessage(e) {
       if (!e.data) return;
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
+      
+      // 🌟 实时接收生成的网页内部产生的数据变动
+      if (e.data.type === 'SANDBOX_STORAGE_SET') {
+        sandboxStorage[e.data.key] = e.data.value;
+        persistAllData();
+        refreshUIElements();
+      }
+      if (e.data.type === 'SANDBOX_STORAGE_REMOVE') {
+        delete sandboxStorage[e.data.key];
+        persistAllData();
+        refreshUIElements();
+      }
+      if (e.data.type === 'SANDBOX_STORAGE_CLEAR') {
+        sandboxStorage = {};
+        persistAllData();
+        refreshUIElements();
+      }
     }
 
     // ==========================================
@@ -1166,6 +1230,7 @@
         virtualFiles,
         projectMap,
         chatHistory,
+        sandboxStorage,
         remoteModels,
         selectedModel: selectedModel || document.getElementById('customModelInput').value.trim(),
         apiConfig: {
@@ -1177,7 +1242,7 @@
 
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        if (showNotif) showToast('💾 所有数据与对话已成功保存！');
+        if (showNotif) showToast('💾 所有数据（含网页内部设置）已保存！');
       } catch (e) {
         if (showNotif) showToast('❌ 存储失败：单次代码过大，建议导出 JSON 备份');
       }
@@ -1193,6 +1258,7 @@
         chatHistory = s.chatHistory || [];
         remoteModels = s.remoteModels || [];
         selectedModel = s.selectedModel || '';
+        sandboxStorage = s.sandboxStorage || {};
 
         if (s.apiConfig) {
           document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || '';
@@ -1215,12 +1281,13 @@
       const zip = new JSZip();
       keys.forEach(p => zip.file(p, virtualFiles[p]));
       zip.file("PROJECT_MAP.json", JSON.stringify(projectMap, null, 2));
+      zip.file("SANDBOX_DATA.json", JSON.stringify(sandboxStorage, null, 2));
       zip.generateAsync({ type: "blob" }).then(b => saveAs(b, "ai-web-project.zip"));
     }
 
     function resetEntireProject() {
-      if (confirm('⚠️ 警告：彻底清空全部数据？')) {
-        virtualFiles = {}; projectMap = {}; chatHistory = [];
+      if (confirm('⚠️ 警告：彻底清空全部代码、对话与网页内部数据？')) {
+        virtualFiles = {}; projectMap = {}; chatHistory = []; sandboxStorage = {};
         localStorage.removeItem(STORAGE_KEY);
         renderChatMessages();
         refreshPreview();
@@ -1250,6 +1317,11 @@
     function refreshUIElements() {
       document.getElementById('topFileCount').innerText = `${Object.keys(virtualFiles).length}文件`;
       document.getElementById('topFeatureCount').innerText = `${Object.keys(projectMap).length}模块`;
+      
+      const sandboxCountEl = document.getElementById('sandboxDataCountLabel');
+      if (sandboxCountEl) {
+        sandboxCountEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页内部数据`;
+      }
     }
 
     function setLoading(isLoading, text = "") {
