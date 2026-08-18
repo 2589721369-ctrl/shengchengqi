@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI Web Studio - 自定义中转站专版</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- JSZip & FileSaver -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    html, body { height: 100%; height: 100dvh; margin: 0; padding: 0; overflow: hidden; background-color: #f4f4f5; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+    .device-transition { transition: width 0.25s ease, height 0.25s ease; }
+    .msg-bubble { user-select: none; -webkit-user-select: none; }
+    .msg-bubble:active { transform: scale(0.985); }
+  </style>
+</head>
+<body class="text-zinc-800 flex flex-col font-sans antialiased select-none">
+
+  <!-- ==================== 1. 顶部状态栏 (极简单行横排，绝不拥挤) ==================== -->
+  <header class="h-12 border-b border-zinc-200 bg-white px-4 flex items-center justify-between shrink-0 z-40 shadow-sm">
+    <!-- 左侧三个简略名称：横向排布、不换行 -->
+    <div class="flex items-center space-x-2 text-xs whitespace-nowrap overflow-hidden">
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <div class="w-5 h-5 rounded-md bg-zinc-900 flex items-center justify-center text-white font-bold text-[10px]">✦</div>
+        <span class="font-bold text-zinc-900 text-xs">AI Studio</span>
+      </div>
+      <span class="text-zinc-300">·</span>
+      <div class="flex items-center space-x-1 text-[11px] text-zinc-500 shrink-0">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span id="topFileCount">0文件</span>
+      </div>
+      <span class="text-zinc-300">·</span>
+      <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0模块</span>
+    </div>
+
+    <!-- 右侧：仅保留保存按钮 -->
+    <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
+      <span>💾 保存</span>
+    </button>
+  </header>
+
+  <!-- ==================== 2. 主体视口容器 ==================== -->
+  <main class="w-full h-[calc(100dvh-48px-64px)] relative overflow-hidden bg-zinc-50">
+
+    <!-- ========== 视图 1：制作 (Maker / Chat) ========== -->
+    <section id="view-maker" class="w-full h-full flex flex-col bg-white">
+      <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
+        <span class="flex items-center space-x-1">
+          <span class="text-indigo-600 font-semibold">🧠 智能架构脑图已启用:</span>
+          <span>AI 自动记录功能与文件夹归属，改动时精准寻址。</span>
+        </span>
+        <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
+      </div>
+
+      <!-- 消息列表 -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
+        <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 自定义中转站工作坊已就绪</div>
+          <p>请先点击底部 <b>【API】</b> 填入你的中转站 Base URL、Key 和想用的模型名称。</p>
+          <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
+            💡 支持长按任意对话气泡 0.6 秒删除单条对话。
+          </div>
+        </div>
+      </div>
+
+      <!-- 生成进度提示 -->
+      <div id="stepProgress" class="hidden px-4 py-2 bg-indigo-50 border-t border-indigo-100 text-indigo-700 text-[11px] flex items-center justify-center space-x-2 shrink-0">
+        <svg class="animate-spin h-3.5 w-3.5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <span id="stepProgressText">AI 正在检索架构图谱并组织代码...</span>
+      </div>
+
+      <!-- 输入栏 -->
+      <div class="p-3 border-t border-zinc-200 bg-white shrink-0">
+        <div class="max-w-3xl mx-auto border border-zinc-300 rounded-2xl focus-within:border-zinc-900 transition bg-white shadow-sm">
+          <textarea id="promptInput" rows="2" placeholder="输入需求（如：“做个炫酷的待办清单，把数据放 data/ 目录，样式放 css/ 目录”）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50 rounded-b-2xl border-t border-zinc-100">
+            <span class="text-[10px] text-zinc-400">Enter 发送 / Shift+Enter 换行</span>
+            <button id="sendBtn" onclick="sendMessage()" class="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+              发送指令
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
+    <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
+      <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+        <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
+          <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm">桌面</button>
+          <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500">平板</button>
+          <button onclick="setDeviceViewport('mobile')" id="btn-mobile" class="px-2 py-0.5 rounded font-medium text-zinc-500">手机</button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="currentRenderPath">index.html</span>
+          <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="刷新">🔄</button>
+          <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
+        </div>
+      </div>
+
+      <div class="flex-1 p-3 flex items-center justify-center overflow-auto bg-zinc-200/60">
+        <div id="deviceContainer" class="w-full h-full device-transition bg-white rounded-xl shadow-lg border border-zinc-300 overflow-hidden relative">
+          <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" class="w-full h-full border-0"></iframe>
+        </div>
+      </div>
+
+      <div id="consoleDrawer" class="h-36 border-t border-zinc-200 bg-white hidden flex-col shrink-0">
+        <div class="px-3 py-1.5 border-b border-zinc-100 flex justify-between items-center text-[11px] bg-zinc-50">
+          <span class="font-mono text-zinc-600">Runtime Console Logs</span>
+          <button onclick="clearLogs()" class="text-zinc-400 hover:text-zinc-700">清空</button>
+        </div>
+        <div id="consoleLogs" class="flex-1 p-2 font-mono text-[11px] overflow-y-auto space-y-1 bg-white">
+          <div class="text-zinc-400 italic">[沙箱日志已就绪]</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 视图 3：API 中转站管理 (完全自定义) ========== -->
+    <section id="view-api" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
+      <div class="max-w-3xl mx-auto space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-zinc-900">自定义中转站 API 配置</h2>
+          <p class="text-xs text-zinc-500">适配所有 OneAPI / NewAPI / OpenRouter / 第三方中转站，支持自定义端点与任意模型名。</p>
+        </div>
+
+        <!-- 接口卡片 -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Base URL</label>
+              <input id="apiBaseUrl" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
+              <span class="text-[10px] text-zinc-400 mt-1 block">支持任意第三方中转地址（末尾一般带 /v1）</span>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Key (令牌)</label>
+              <input id="apiKey" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
+              <span class="text-[10px] text-zinc-400 mt-1 block">仅在你的浏览器本地储存</span>
+            </div>
+          </div>
+
+          <!-- 自定义模型名称手动输入 -->
+          <div class="pt-2 border-t border-zinc-100">
+            <label class="text-xs font-medium text-zinc-700 block mb-1">
+              使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入</span>
+            </label>
+            <div class="flex space-x-2">
+              <input id="customModelInput" type="text" placeholder="例如: gpt-4o, claude-3-5-sonnet-20241022, deepseek-v3 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
+              <button onclick="saveApiSettings()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
+                保存并生效
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-zinc-100">
+            <span class="text-xs text-zinc-500">不想手动打字？可尝试从你的中转站直接获取列表：</span>
+            <button onclick="fetchRemoteModels()" id="fetchModelsBtn" class="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-medium rounded-xl transition flex items-center space-x-1">
+              <span>🔄 拉取中转站模型列表</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 远程拉取的模型列表 (支持搜索) -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-zinc-900 uppercase">已拉取的模型库 (<span id="modelCountLabel">0</span>)</h3>
+            <input id="modelSearchInput" oninput="filterModels()" type="text" placeholder="搜索模型 (如 claude, gpt, deepseek)..." class="w-56 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:bg-white focus:outline-none">
+          </div>
+          <div id="modelsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto p-0.5">
+            <div class="col-span-full py-4 text-center text-xs text-zinc-400">
+              暂未拉取，你可在上方直接输入自定义模型，或点击“拉取中转站模型列表”
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 视图 4：其他设置 & 架构透视 ========== -->
+    <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
+      <div class="max-w-3xl mx-auto space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-zinc-900">项目资产与架构透视</h2>
+          <p class="text-xs text-zinc-500">查看 AI 在后台建立的功能认知图谱、版本快照回退与数据备份。</p>
+        </div>
+
+        <!-- 常用动作 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button onclick="exportZip()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2">
+            <span class="text-xl">📦</span>
+            <div>
+              <div class="text-xs font-bold">打包导出 ZIP</div>
+              <div class="text-[10px] text-zinc-400">完整包含所有多级文件夹</div>
+            </div>
+          </button>
+
+          <button onclick="persistAllData(true)" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2">
+            <span class="text-xl">💾</span>
+            <div>
+              <div class="text-xs font-bold">保存所有记录</div>
+              <div class="text-[10px] text-zinc-400">无缝落盘至本地存储</div>
+            </div>
+          </button>
+
+          <button onclick="createSnapshotManually()" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2">
+            <span class="text-xl">📸</span>
+            <div>
+              <div class="text-xs font-bold">创建版本检查点</div>
+              <div class="text-[10px] text-zinc-400">记录当前代码快照</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- AI 后台认知图谱展示区 -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
+              <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
+            </h3>
+            <span class="text-[11px] text-indigo-600 font-medium">AI 依据此地图精准修改</span>
+          </div>
+          <div id="projectMapContainer" class="space-y-1.5 max-h-56 overflow-y-auto">
+            <div class="text-zinc-400 text-xs italic py-2">暂无认知数据，AI 首次生成后将在此沉淀功能索引。</div>
+          </div>
+        </div>
+
+        <!-- 快照列表 -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <h3 class="text-xs font-bold text-zinc-900 uppercase">历史快照回滚 (<span id="snapshotCountLabel">0</span>)</h3>
+          <div id="snapshotsContainer" class="space-y-2 max-h-56 overflow-y-auto"></div>
+        </div>
+
+        <!-- 备份与清空 -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <h3 class="text-xs font-bold text-zinc-900 uppercase">JSON 备份与恢复</h3>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportProjectJson()" class="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-medium rounded-xl">📄 导出 JSON 备份</button>
+            <label class="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-medium rounded-xl cursor-pointer">
+              📥 导入 JSON 备份
+              <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
+            </label>
+            <button onclick="resetEntireProject()" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-xl ml-auto">🗑️ 清空全部数据</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 3. 底部固定导航栏 ==================== -->
+  <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-zinc-300 z-50 flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+    
+    <button onclick="switchBottomTab('maker')" id="nav-maker" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-900 transition">
+      <div id="nav-maker-icon" class="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+      </div>
+      <span id="nav-maker-text" class="text-[11px] font-bold mt-0.5">制作</span>
+    </button>
+
+    <button onclick="switchBottomTab('preview')" id="nav-preview" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
+      <div id="nav-preview-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+      </div>
+      <span id="nav-preview-text" class="text-[11px] font-medium mt-0.5">预览HTML</span>
+    </button>
+
+    <button onclick="switchBottomTab('api')" id="nav-api" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
+      <div id="nav-api-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"></rect><rect x="9" y="9" width="6" height="6" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path></svg>
+      </div>
+      <span id="nav-api-text" class="text-[11px] font-medium mt-0.5">API</span>
+    </button>
+
+    <button onclick="switchBottomTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
+      <div id="nav-settings-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>
+      </div>
+      <span id="nav-settings-text" class="text-[11px] font-medium mt-0.5">其他设置</span>
+    </button>
+
+  </nav>
+
+  <!-- ==================== 4. 长按删除弹窗 ==================== -->
+  <div id="deleteConfirmModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-72 max-w-[90vw] shadow-2xl space-y-3">
+      <div class="text-center">
+        <h4 class="text-sm font-bold text-zinc-900">删除此条对话？</h4>
+        <p class="text-xs text-zinc-500 mt-1">此内容将从 AI 后续记忆上下文中彻底移除。</p>
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeDeleteModal()" class="flex-1 py-1.5 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium">取消</button>
+        <button id="confirmDeleteBtn" class="flex-1 py-1.5 text-xs bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium shadow-sm">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toastNotification" class="fixed top-4 left-1/2 transform -translate-x-1/2 -translate-y-16 opacity-0 bg-zinc-900 text-white px-4 py-2 rounded-xl shadow-2xl text-xs font-medium transition-all duration-300 flex items-center space-x-1.5 z-50 pointer-events-none">
+    <span>✦</span>
+    <span id="toastText">操作成功</span>
+  </div>
+
+  <!-- ==================== 5. 核心 JavaScript ==================== -->
+  <script>
+    const STORAGE_KEY = 'AI_WEB_STUDIO_RELAY_STATE_V2';
+
+    let virtualFiles = {};          // 后台虚拟多文件
+    let projectMap = {};            // 功能寻址脑图
+    let chatHistory = [];
+    let snapshots = [];
+    let remoteModels = [];          // 从中转站拉取的模型
+    let selectedModel = '';         // 用户自定义或选择的模型
+    let currentActivePage = 'index.html';
+    let pendingDeleteIndex = null;
+
+    const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师。
+你负责为用户开发和一步一步迭代一个多文件纯前端工程。
+
+【规范】：
+1. 始终以 \`index.html\` 为主入口。
+2. 模块化规划文件夹：CSS 放 \`css/\`，JS 放 \`js/\`，数据放 \`data/\`，子页面放 \`pages/\`。
+3. 【关键！架构认知图谱】：你必须在每次输出中包含或更新项目功能地图：
+<project_map>
+{
+  "文件完整路径": "该文件具体负责的功能与模块描述"
+}
+</project_map>
+4. 【代码输出规范】：所有新建或修改的文件必须封装在：
+<file path="文件夹/文件名.扩展名">
+完整源码
+</file>
+5. 修改时先检索【项目架构地图】，定位目标文件进行修改，禁止无意义的重复创建。
+6. 标签外用专业中文说明改动点与寻址逻辑。`;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStateFromStorage();
+
+      document.getElementById('promptInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      window.addEventListener('message', handleIframeMessage);
+      refreshUIElements();
+    });
+
+    function switchBottomTab(tabKey) {
+      const tabs = ['maker', 'preview', 'api', 'settings'];
+      tabs.forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`nav-${t}`).className = "flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition";
+        document.getElementById(`nav-${t}-icon`).className = "w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center";
+        document.getElementById(`nav-${t}-text`).className = "text-[11px] font-medium mt-0.5";
+      });
+
+      document.getElementById(`view-${tabKey}`).classList.remove('hidden');
+      document.getElementById(`nav-${tabKey}`).className = "flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-900 transition";
+      document.getElementById(`nav-${tabKey}-icon`).className = "w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm";
+      document.getElementById(`nav-${tabKey}-text`).className = "text-[11px] font-bold mt-0.5";
+
+      if (tabKey === 'preview') refreshPreview();
+      if (tabKey === 'api') renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
+      if (tabKey === 'settings') {
+        renderSnapshotsList();
+        renderProjectMapUI();
+      }
+    }
+
+    // AI 对话与中转站调用
+    async function sendMessage() {
+      const input = document.getElementById('promptInput');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+
+      if (!baseUrl || !apiKey || !model) {
+        showToast('请先在底部【API】填入 Base URL、Key 和模型名称');
+        switchBottomTab('api');
+        return;
+      }
+
+      input.value = '';
+      chatHistory.push({ role: "user", content: prompt });
+      renderChatMessages();
+      setLoading(true, `中转站 [${model}] 正在检索架构图谱并编写代码...`);
+
+      const mapStr = Object.keys(projectMap).length > 0 
+        ? JSON.stringify(projectMap, null, 2) 
+        : '项目全新创建中';
+
+      const promptWithContext = `【当前已知项目架构地图】:\n${mapStr}\n\n【用户新指令】: ${prompt}\n请根据架构地图匹配相关文件进行修改或创建新模块，并在末尾更新 <project_map>。`;
+
+      const apiMessages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...chatHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content })),
+        { role: "user", content: promptWithContext }
+      ];
+
+      try {
+        const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: apiMessages,
+            temperature: 0.2
+          })
+        });
+
+        if (!res.ok) throw new Error(`中转站响应错误 (${res.status}): ${await res.text()}`);
+
+        const data = await res.json();
+        const aiReply = data.choices[0].message.content;
+
+        const updatedFiles = parseFilesFromOutput(aiReply);
+        parseProjectMapFromOutput(aiReply);
+
+        chatHistory.push({ role: "assistant", content: aiReply, updatedFiles });
+        renderChatMessages();
+
+        if (updatedFiles.length > 0) {
+          createSnapshot(`修改: ${prompt.substring(0, 15)}...`);
+          refreshPreview();
+          showToast('✨ 中转站生成完毕！点击【预览HTML】体验');
+        }
+        persistAllData();
+      } catch (err) {
+        chatHistory.push({ role: "system", content: `❌ 请求失败: ${err.message}` });
+        renderChatMessages();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // 中转站 API 设置与拉取
+    function saveApiSettings() {
+      const customModel = document.getElementById('customModelInput').value.trim();
+      if (customModel) {
+        selectedModel = customModel;
+      }
+      persistAllData(true);
+      refreshUIElements();
+      showToast('中转站配置已保存生效！');
+    }
+
+    async function fetchRemoteModels() {
+      const baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const btn = document.getElementById('fetchModelsBtn');
+
+      if (!baseUrl || !apiKey) {
+        showToast('请先输入 Base URL 和 API Key');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = '拉取中...';
+
+      try {
+        const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/models`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        let list = [];
+        if (Array.isArray(data.data)) list = data.data.map(m => m.id);
+        else if (Array.isArray(data.models)) list = data.models.map(m => m.name || m.id);
+
+        if (list.length > 0) {
+          remoteModels = Array.from(new Set([...list]));
+          showToast(`🎉 成功从中转站拉取 ${list.length} 个模型！`);
+          renderModelsGrid();
+          persistAllData();
+        } else {
+          showToast('中转站返回了空模型列表，请手动输入模型名');
+        }
+      } catch (err) {
+        showToast(`❌ 拉取失败: ${err.message} (建议直接手动输入模型名)`);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔄 拉取中转站模型列表';
+      }
+    }
+
+    function renderModelsGrid(filterText = '') {
+      const grid = document.getElementById('modelsGrid');
+      const filtered = remoteModels.filter(m => m.toLowerCase().includes(filterText.toLowerCase()));
+      document.getElementById('modelCountLabel').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">暂无匹配模型，可在上方手动输入</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(m => `
+        <div onclick="selectModel('${m}')" class="p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+          selectedModel === m ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200'
+        }">
+          <span class="font-mono font-bold text-xs truncate">${escapeHtml(m)}</span>
+          ${selectedModel === m ? '<span class="text-xs text-emerald-400">✓</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    function filterModels() {
+      renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
+    }
+
+    function selectModel(modelName) {
+      selectedModel = modelName;
+      document.getElementById('customModelInput').value = modelName;
+      refreshUIElements();
+      renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
+      showToast(`已选择模型: ${modelName}`);
+      persistAllData();
+    }
+
+    // 架构与脑图解析
+    function parseProjectMapFromOutput(text) {
+      const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
+      if (mapMatch && mapMatch[1]) {
+        try {
+          const parsed = JSON.parse(mapMatch[1].trim());
+          projectMap = { ...projectMap, ...parsed };
+          refreshUIElements();
+          renderProjectMapUI();
+        } catch (e) {}
+      }
+    }
+
+    function renderProjectMapUI() {
+      const container = document.getElementById('projectMapContainer');
+      const keys = Object.keys(projectMap);
+      if (keys.length === 0) {
+        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-2">暂无认知数据</div>';
+        return;
+      }
+      container.innerHTML = keys.map(path => `
+        <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-2.5 flex items-start space-x-2.5 text-xs">
+          <span class="font-mono font-bold text-zinc-900 bg-white px-2 py-0.5 rounded border border-zinc-200 shrink-0">${escapeHtml(path)}</span>
+          <span class="text-zinc-600 leading-relaxed">${escapeHtml(projectMap[path] || '功能模块')}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderChatMessages() {
+      const box = document.getElementById('chatMessages');
+      if (chatHistory.length === 0) {
+        box.innerHTML = `
+          <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 自定义中转站工作坊已就绪</div>
+            <p>输入你的需求，AI 会在后台构建多文件架构并自动记录功能寻址。</p>
+          </div>
+        `;
+        return;
+      }
+
+      box.innerHTML = chatHistory.map((msg, index) => {
+        if (msg.role === 'user') {
+          return `
+            <div class="flex justify-end msg-container" data-index="${index}">
+              <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按可删除">
+                ${escapeHtml(msg.content)}
+              </div>
+            </div>
+          `;
+        } else if (msg.role === 'assistant') {
+          const cleanExplanation = msg.content
+            .replace(/<file[\s\S]*?<\/file>/gi, '')
+            .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
+            .trim() || '已完成代码与架构寻址更新。';
+
+          const filesTag = msg.updatedFiles && msg.updatedFiles.length > 0
+            ? `<div class="flex flex-wrap gap-1 mt-2">${msg.updatedFiles.map(f => `<span class="bg-zinc-100 border border-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-mono">⚡ 定向更新: ${escapeHtml(f)}</span>`).join('')}</div>`
+            : '';
+
+          return `
+            <div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}">
+              <div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer" title="长按可删除">
+                <div>${escapeHtml(cleanExplanation)}</div>
+                ${filesTag}
+              </div>
+            </div>
+          `;
+        } else {
+          return `<div class="text-center text-[11px] text-red-500 my-1 msg-container" data-index="${index}">${escapeHtml(msg.content)}</div>`;
+        }
+      }).join('');
+
+      box.scrollTop = box.scrollHeight;
+      bindLongPressEvents();
+    }
+
+    function bindLongPressEvents() {
+      document.querySelectorAll('.msg-container').forEach(el => {
+        let timer = null;
+        const index = parseInt(el.getAttribute('data-index'), 10);
+        const start = () => { timer = setTimeout(() => triggerDeletePrompt(index), 600); };
+        const clear = () => { if (timer) clearTimeout(timer); };
+
+        el.addEventListener('touchstart', start, { passive: true });
+        el.addEventListener('touchend', clear);
+        el.addEventListener('touchmove', clear);
+        el.addEventListener('mousedown', start);
+        el.addEventListener('mouseup', clear);
+        el.addEventListener('mouseleave', clear);
+      });
+    }
+
+    function triggerDeletePrompt(index) {
+      pendingDeleteIndex = index;
+      document.getElementById('deleteConfirmModal').classList.remove('hidden');
+      document.getElementById('deleteConfirmModal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteConfirmModal').classList.add('hidden');
+      document.getElementById('deleteConfirmModal').classList.remove('flex');
+      pendingDeleteIndex = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+      if (pendingDeleteIndex !== null && chatHistory[pendingDeleteIndex]) {
+        chatHistory.splice(pendingDeleteIndex, 1);
+        renderChatMessages();
+        persistAllData();
+        showToast('已删除此条记录');
+      }
+      closeDeleteModal();
+    });
+
+    function clearChatHistory() {
+      if (confirm('确认清空所有对话？（文件和架构图谱会继续保留）')) {
+        chatHistory = [];
+        renderChatMessages();
+        persistAllData();
+      }
+    }
+
+    // 虚拟文件与 iframe 渲染
+    function parseFilesFromOutput(text) {
+      const regex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
+      let match;
+      const updated = [];
+      while ((match = regex.exec(text)) !== null) {
+        let path = match[1].trim().replace(/^\/+/, '');
+        let content = match[2].trim();
+        virtualFiles[path] = content;
+        updated.push(path);
+      }
+      refreshUIElements();
+      return updated;
+    }
+
+    function refreshPreview(targetPath = null) {
+      if (targetPath) currentActivePage = targetPath;
+      if (!virtualFiles[currentActivePage]) {
+        currentActivePage = virtualFiles['index.html'] ? 'index.html' : Object.keys(virtualFiles).find(k => k.endsWith('.html')) || 'index.html';
+      }
+
+      document.getElementById('currentRenderPath').innerText = currentActivePage;
+      const iframe = document.getElementById('previewFrame');
+      const rawHtml = virtualFiles[currentActivePage];
+
+      if (!rawHtml) {
+        iframe.srcdoc = `<div style="font-family:sans-serif;display:flex;height:100vh;align-items:center;justify-content:center;color:#a1a1aa;background:#fafafa;">
+          <p>✦ 正在等待 AI 构筑项目代码...</p>
+        </div>`;
+        return;
+      }
+      iframe.srcdoc = bundleVirtualProject(rawHtml, currentActivePage);
+    }
+
+    function bundleVirtualProject(html, currentHtmlPath) {
+      const currentDir = currentHtmlPath.includes('/') ? currentHtmlPath.substring(0, currentHtmlPath.lastIndexOf('/') + 1) : '';
+
+      for (const [path, code] of Object.entries(virtualFiles)) {
+        if (path.endsWith('.css')) {
+          const rel = path.replace(currentDir, '');
+          const pattern = new RegExp(`<link[^>]+href=["'](\\./)?(${escapeRegex(path)}|${escapeRegex(rel)})["'][^>]*>`, 'gi');
+          html = html.replace(pattern, `<style>/* [Bundle] ${path} */\n${code}</style>`);
+        }
+        if (path.endsWith('.js')) {
+          const rel = path.replace(currentDir, '');
+          const pattern = new RegExp(`<script[^>]+src=["'](\\./)?(${escapeRegex(path)}|${escapeRegex(rel)})["'][^>]*>\\s*<\\/script>`, 'gi');
+          html = html.replace(pattern, `<script>/* [Bundle] ${path} */\n${code}<\/script>`);
+        }
+      }
+
+      const runtimeBridge = `
+      <script>
+        ['log', 'warn', 'error', 'info'].forEach(t => {
+          const o = console[t];
+          console[t] = (...a) => {
+            window.parent.postMessage({ type: 'CONSOLE_LOG', level: t, msg: a.map(x => typeof x==='object'?JSON.stringify(x):x).join(' ') }, '*');
+            o.apply(console, a);
+          };
+        });
+        window.onerror = (m, u, l) => window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: m + ' (行 ' + l + ')' }, '*');
+        
+        document.addEventListener('click', e => {
+          const a = e.target.closest('a');
+          if (a && a.getAttribute('href')) {
+            const h = a.getAttribute('href').trim();
+            if (!h.startsWith('http') && !h.startsWith('#') && !h.startsWith('javascript:')) {
+              e.preventDefault();
+              window.parent.postMessage({ type: 'NAVIGATE', path: h }, '*');
+            }
+          }
+        });
+      <\/script>
+      `;
+      return runtimeBridge + html;
+    }
+
+    function handleIframeMessage(e) {
+      if (!e.data) return;
+      if (e.data.type === 'NAVIGATE') {
+        let t = e.data.path.replace(/^\.\//, '');
+        if (virtualFiles[t]) refreshPreview(t);
+        else {
+          const found = Object.keys(virtualFiles).find(k => k.endsWith(t));
+          if (found) refreshPreview(found);
+        }
+      }
+      if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
+    }
+
+    // 快照系统
+    function createSnapshot(title = '检查点') {
+      snapshots.unshift({
+        id: Date.now(),
+        time: new Date().toLocaleTimeString(),
+        title,
+        files: JSON.parse(JSON.stringify(virtualFiles)),
+        projectMap: JSON.parse(JSON.stringify(projectMap))
+      });
+      refreshUIElements();
+      persistAllData();
+    }
+
+    function createSnapshotManually() {
+      if (Object.keys(virtualFiles).length === 0) return showToast('项目暂无代码');
+      const t = prompt('请输入快照备注：', `快照 #${snapshots.length + 1}`) || '手动快照';
+      createSnapshot(t);
+      renderSnapshotsList();
+      showToast('快照创建成功！');
+    }
+
+    function renderSnapshotsList() {
+      const c = document.getElementById('snapshotsContainer');
+      document.getElementById('snapshotCountLabel').innerText = snapshots.length;
+      if (snapshots.length === 0) {
+        c.innerHTML = '<div class="text-center py-4 text-zinc-400 text-xs">暂无历史快照</div>';
+        return;
+      }
+      c.innerHTML = snapshots.map(s => `
+        <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <span class="font-bold text-xs text-zinc-900">${escapeHtml(s.title)}</span>
+            <div class="text-[10px] text-zinc-400">${s.time} · ${Object.keys(s.files).length} 文件</div>
+          </div>
+          <button onclick="restoreSnapshot(${s.id})" class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium shadow-sm">回滚</button>
+        </div>
+      `).join('');
+    }
+
+    function restoreSnapshot(id) {
+      const s = snapshots.find(x => x.id === id);
+      if (!s) return;
+      if (confirm(`确认回滚到 "${s.title}"？`)) {
+        virtualFiles = JSON.parse(JSON.stringify(s.files));
+        projectMap = JSON.parse(JSON.stringify(s.projectMap || {}));
+        refreshPreview('index.html');
+        refreshUIElements();
+        persistAllData();
+        showToast('已回滚！');
+        switchBottomTab('preview');
+      }
+    }
+
+    // 持久化管理
+    function persistAllData(showNotif = false) {
+      const payload = {
+        virtualFiles, projectMap, chatHistory, snapshots, remoteModels, selectedModel,
+        apiConfig: {
+          baseUrl: document.getElementById('apiBaseUrl').value.trim(),
+          apiKey: document.getElementById('apiKey').value.trim(),
+          model: selectedModel || document.getElementById('customModelInput').value.trim()
+        }
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        if (showNotif) showToast('💾 记录与中转配置已保存！');
+      } catch (e) { showToast('❌ 保存失败'); }
+    }
+
+    function loadStateFromStorage() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const s = JSON.parse(raw);
+        virtualFiles = s.virtualFiles || {};
+        projectMap = s.projectMap || {};
+        chatHistory = s.chatHistory || [];
+        snapshots = s.snapshots || [];
+        remoteModels = s.remoteModels || [];
+        selectedModel = s.selectedModel || '';
+
+        if (s.apiConfig) {
+          document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || '';
+          document.getElementById('apiKey').value = s.apiConfig.apiKey || '';
+          document.getElementById('customModelInput').value = s.apiConfig.model || '';
+          selectedModel = s.apiConfig.model || '';
+        }
+        renderChatMessages();
+      } catch (e) {}
+    }
+
+    function exportZip() {
+      const keys = Object.keys(virtualFiles);
+      if (keys.length === 0) return showToast('项目为空');
+      const zip = new JSZip();
+      keys.forEach(p => zip.file(p, virtualFiles[p]));
+      zip.file("PROJECT_MAP.json", JSON.stringify(projectMap, null, 2));
+      zip.generateAsync({ type: "blob" }).then(b => saveAs(b, "ai-web-project.zip"));
+    }
+
+    function exportProjectJson() {
+      const b = new Blob([JSON.stringify({ virtualFiles, projectMap, chatHistory, snapshots }, null, 2)], { type: 'application/json' });
+      saveAs(b, `ai-studio-backup-${Date.now()}.json`);
+    }
+
+    function importProjectJson(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = (ev) => {
+        try {
+          const p = JSON.parse(ev.target.result);
+          if (p.virtualFiles) {
+            virtualFiles = p.virtualFiles;
+            projectMap = p.projectMap || {};
+            chatHistory = p.chatHistory || [];
+            snapshots = p.snapshots || [];
+            renderChatMessages();
+            refreshPreview();
+            refreshUIElements();
+            persistAllData();
+            showToast('备份恢复成功！');
+            switchBottomTab('preview');
+          }
+        } catch (err) { alert('文件无效'); }
+      };
+      r.readAsText(f);
+    }
+
+    function resetEntireProject() {
+      if (confirm('⚠️ 警告：彻底清空全部数据？')) {
+        virtualFiles = {}; projectMap = {}; chatHistory = []; snapshots = [];
+        localStorage.removeItem(STORAGE_KEY);
+        renderChatMessages();
+        refreshPreview();
+        refreshUIElements();
+        showToast('项目已清空');
+        switchBottomTab('maker');
+      }
+    }
+
+    function setDeviceViewport(mode) {
+      const c = document.getElementById('deviceContainer');
+      ['desktop', 'tablet', 'mobile'].forEach(id => {
+        document.getElementById(`btn-${id}`).className = "px-2 py-0.5 rounded font-medium text-zinc-500";
+      });
+      document.getElementById(`btn-${mode}`).className = "px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm";
+      if (mode === 'desktop') { c.style.width = '100%'; c.style.height = '100%'; }
+      if (mode === 'tablet') { c.style.width = '768px'; c.style.height = '95%'; }
+      if (mode === 'mobile') { c.style.width = '375px'; c.style.height = '667px'; }
+    }
+
+    function toggleConsoleDrawer() {
+      const c = document.getElementById('consoleDrawer');
+      c.classList.toggle('hidden');
+      c.classList.toggle('flex');
+    }
+
+    function addConsoleLog(type, msg) {
+      const box = document.getElementById('consoleLogs');
+      const row = document.createElement('div');
+      row.className = `p-1 rounded text-zinc-700 font-mono flex space-x-2`;
+      row.innerHTML = `<span class="opacity-40">[${new Date().toLocaleTimeString()}]</span><span>${escapeHtml(msg)}</span>`;
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearLogs() { document.getElementById('consoleLogs').innerHTML = ''; }
+
+    function refreshUIElements() {
+      // 简略横向统计，绝不换行
+      document.getElementById('topFileCount').innerText = `${Object.keys(virtualFiles).length}文件`;
+      document.getElementById('topFeatureCount').innerText = `${Object.keys(projectMap).length}模块`;
+    }
+
+    function setLoading(isLoading, text = "") {
+      const p = document.getElementById('stepProgress');
+      document.getElementById('stepProgressText').innerText = text;
+      document.getElementById('sendBtn').disabled = isLoading;
+      p.classList.toggle('hidden', !isLoading);
+    }
+
+    function showToast(text) {
+      const t = document.getElementById('toastNotification');
+      document.getElementById('toastText').innerText = text;
+      t.classList.remove('-translate-y-16', 'opacity-0');
+      setTimeout(() => t.classList.add('-translate-y-16', 'opacity-0'), 2200);
+    }
+
+    function escapeHtml(s) { return (s || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  </script>
+</body>
+</html>
