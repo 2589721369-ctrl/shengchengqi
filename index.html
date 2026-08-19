@@ -203,7 +203,7 @@
           <div>
             <div class="flex items-center space-x-2">
               <h2 class="text-base font-bold text-zinc-900">项目资产与显微镜级档案管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.6 DOM精确解析版</span>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.7 全量通畅版</span>
             </div>
             <p class="text-xs text-zinc-500 mt-0.5">每个文件包含的所有元素、函数、交互细节全景记录。</p>
           </div>
@@ -214,7 +214,7 @@
             <span class="text-xl">📄</span>
             <div>
               <div class="text-xs font-bold">导出全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">含代码、详细档案、API 等</div>
+              <div class="text-[10px] text-zinc-400">含代码、详细档案、API配置等</div>
             </div>
           </button>
 
@@ -222,7 +222,7 @@
             <span class="text-xl">📥</span>
             <div>
               <div class="text-xs font-bold">导入全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">选择 .json 文件完整还原</div>
+              <div class="text-[10px] text-zinc-400">选择 .json 文件完整还原所有配置</div>
             </div>
             <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
@@ -352,7 +352,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_6';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_7';
 
     let virtualFiles = {};
     let projectMap = {};
@@ -968,11 +968,31 @@
       }
     }
 
+    // ==========================================
+    // 🌟 全量备份与恢复引擎（包含代码、图谱、历史与完整的 API 配置）
+    // ==========================================
     function exportProjectJson() {
-      const payload = { app: "AI_WEB_STUDIO_MICROSCOPIC", version: "18.6", virtualFiles, projectMap, chatHistory, sandboxStorage, remoteModels, selectedModel };
+      const apiConfig = {
+        baseUrl: document.getElementById('apiBaseUrl').value.trim(),
+        apiKey: document.getElementById('apiKey').value.trim(),
+        model: selectedModel || document.getElementById('customModelInput').value.trim()
+      };
+
+      const payload = {
+        app: "AI_WEB_STUDIO_MICROSCOPIC",
+        version: "18.7",
+        virtualFiles,
+        projectMap,
+        chatHistory,
+        sandboxStorage,
+        remoteModels,
+        selectedModel: apiConfig.model,
+        apiConfig
+      };
+
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       saveAs(blob, `ai-studio-backup-${Date.now()}.json`);
-      showToast('🎉 导出成功！');
+      showToast('🎉 导出成功（含 API 配置）！');
     }
 
     function importProjectJson(e) {
@@ -987,11 +1007,24 @@
             projectMap = data.projectMap || {};
             chatHistory = data.chatHistory || [];
             remoteModels = data.remoteModels || [];
-            selectedModel = data.selectedModel || '';
             sandboxStorage = data.sandboxStorage || {};
+            selectedModel = data.selectedModel || (data.apiConfig ? data.apiConfig.model : '') || '';
+            
+            // 自动还原 API 输入框
+            if (data.apiConfig) {
+              document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
+              document.getElementById('apiKey').value = data.apiConfig.apiKey || '';
+              document.getElementById('customModelInput').value = data.apiConfig.model || selectedModel || '';
+            }
+
             lastSnapshotState = null;
-            renderChatMessages(); refreshPreview(); refreshUIElements(); persistAllData(); updateRollbackUI();
-            showToast('🎉 恢复成功！'); switchBottomTab('preview');
+            renderChatMessages(); 
+            refreshPreview(); 
+            refreshUIElements(); 
+            persistAllData(); 
+            updateRollbackUI();
+            showToast('🎉 全量数据与 API 设置已完整恢复！'); 
+            switchBottomTab('preview');
           }
         } catch (err) { alert('导入失败'); }
       };
@@ -1109,7 +1142,7 @@
     function clearChatHistory() { if (confirm('确认清空对话？')) { chatHistory = []; renderChatMessages(); persistAllData(); } }
 
     // ==========================================
-    // 🌟 终极核心重构：DOM 级别绝对精准的虚拟工程打包器
+    // 🌟 DOM 级别绝对精准的虚拟工程打包器（防止 settings.js 误伤 chat-settings.js）
     // ==========================================
     function refreshPreview(targetPage) {
       if (targetPage && virtualFiles[targetPage]) {
@@ -1143,22 +1176,18 @@
       iframe.srcdoc = bundleVirtualProject(rawHtml, currentPreviewPage);
     }
 
-    // 🌟 核心函数：根据完整相对路径精准匹配并内联，绝不发生 settings.js 误伤 chat-settings.js 的情况
     function findVirtualFileBySrc(src) {
       if (!src) return null;
       let clean = src.replace(/^\.\//, '').replace(/^\/+/, '').split('?')[0];
       
-      // 1. 全路径精确匹配 (例: js/modules/chat-settings.js)
       if (virtualFiles[clean]) return { path: clean, content: virtualFiles[clean] };
       
-      // 2. 尾部完整路径匹配 (例: modules/chat-settings.js)
       for (const [path, content] of Object.entries(virtualFiles)) {
         if (path.endsWith('/' + clean) || clean.endsWith('/' + path)) {
           return { path, content };
         }
       }
 
-      // 3. 严格文件名单匹配 (仅当文件名唯一时)
       const fileName = clean.split('/').pop();
       const exactMatches = Object.keys(virtualFiles).filter(p => p.split('/').pop() === fileName);
       if (exactMatches.length === 1) {
@@ -1169,13 +1198,11 @@
     }
 
     function bundleVirtualProject(html, currentPath) {
-      // 使用浏览器原生的 DOM 解析器，精准无误地替换 link 和 script 标签
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
 
-      // 1. 替换所有内联 CSS
-      const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
-      links.forEach(link => {
+      // 1. 精确替换 CSS
+      doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
         const href = link.getAttribute('href');
         if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('//')) {
           const match = findVirtualFileBySrc(href);
@@ -1188,9 +1215,8 @@
         }
       });
 
-      // 2. 替换所有内联 JS
-      const scripts = Array.from(doc.querySelectorAll('script[src]'));
-      scripts.forEach(script => {
+      // 2. 精确替换 JS
+      doc.querySelectorAll('script[src]').forEach(script => {
         const src = script.getAttribute('src');
         if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('//')) {
           const match = findVirtualFileBySrc(src);
@@ -1205,7 +1231,7 @@
 
       const serialized = encodeURIComponent(JSON.stringify(sandboxStorage));
 
-      // 3. 构造最高权限 Bridge 脚本并注入 head 头部
+      // 3. 注入 Bridge 脚本并处理链接拦截
       const bridgeScript = doc.createElement('script');
       bridgeScript.textContent = `
 (function(){
