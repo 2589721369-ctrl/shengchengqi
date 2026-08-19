@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 全数据全量版</title>
+  <title>AI Web Studio - 纯本地智能工作台</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -49,20 +49,26 @@
     <!-- ========== 视图 1：制作 (Maker / Chat) ========== -->
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
-        <span class="flex items-center space-x-1">
-          <span class="text-indigo-600 font-semibold">🧠 沙箱数据同步已启用:</span>
-          <span>生成的网页内数据自动纳入备份。</span>
+        <span class="flex items-center space-x-1 truncate mr-2">
+          <span class="text-indigo-600 font-semibold">🎯 关键词精准寻址:</span>
+          <span class="truncate">多文件模块化，清空对话也能精准命中。</span>
         </span>
-        <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
+        <div class="flex items-center space-x-2 shrink-0">
+          <!-- 🌟 显眼常驻单步回滚按钮 -->
+          <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
+            <span>↩️ 撤销上轮</span>
+          </button>
+          <button onclick="clearChatHistory()" class="hover:text-red-500 text-zinc-400">清空对话</button>
+        </div>
       </div>
 
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
-          <p>输入你的需求，或点 <b>➕ 号</b>传图与代码。你在生成的网页里保存的任何设置、预设与数据，都会同步纳入 JSON 备份！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 智能模块化多文件工作坊</div>
+          <p>已启用<b>关键词驱动的按需代码检索</b>：你可以在【其他设置】为每个文件单独提取与定制关键词。清空对话后，系统依然能根据关键词精准提取目标代码修改！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
-            💡 本地双向落盘已开启，无论何时刷新页面数据永不丢失。
+            💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
         </div>
       </div>
@@ -70,7 +76,7 @@
       <!-- 生成进度提示 -->
       <div id="stepProgress" class="hidden px-4 py-2 bg-indigo-50 border-t border-indigo-100 text-indigo-700 text-[11px] flex items-center justify-center space-x-2 shrink-0">
         <svg class="animate-spin h-3.5 w-3.5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span id="stepProgressText">AI 正在组织纯本地模块代码...</span>
+        <span id="stepProgressText">AI 正在按关键词匹配文件并编写代码...</span>
       </div>
 
       <!-- 输入栏 (含 ➕ 上传区) -->
@@ -81,7 +87,7 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入需求，或点 ➕ 上传图片与代码文件让 AI 参照修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="输入需求（如：“把设置页面里的音量滑块改成蓝色圆角”）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -105,6 +111,7 @@
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+        <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
           <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">平板</button>
@@ -192,17 +199,16 @@
       </div>
     </section>
 
-    <!-- ========== 视图 4：其他设置 (含全量数据与网页内部数据备份) ========== -->
+    <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
-          <h2 class="text-base font-bold text-zinc-900">项目资产与全数据备份导入</h2>
-          <p class="text-xs text-zinc-500">导出的 JSON 包含你的全部代码、图谱、对话、API 配置，以及<b>生成的网页在内部保存的所有设置与预设数据</b>！</p>
+          <h2 class="text-base font-bold text-zinc-900">项目资产与寻址图谱管理</h2>
+          <p class="text-xs text-zinc-500">在图谱中可为每个文件<b>智能提取与定制专属关键词</b>，保障 AI 检索 100% 精确。</p>
         </div>
 
         <!-- 顶置三大卡片 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <!-- 1. 导出全量 JSON 备份 -->
           <button onclick="exportProjectJson()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📄</span>
             <div>
@@ -211,7 +217,6 @@
             </div>
           </button>
 
-          <!-- 2. 导入全量 JSON 备份 -->
           <label class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 cursor-pointer transition">
             <span class="text-xl">📥</span>
             <div>
@@ -221,7 +226,6 @@
             <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
 
-          <!-- 3. 打包导出 ZIP -->
           <button onclick="exportZip()" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📦</span>
             <div>
@@ -231,27 +235,36 @@
           </button>
         </div>
 
-        <!-- 操作按钮栏 -->
+        <!-- 操作按钮栏 (含常驻回滚按钮) -->
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="persistAllData(true)" class="px-3.5 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl shadow-2xs">
             💾 立即保存到浏览器
           </button>
-          <span class="text-[11px] text-zinc-400 font-mono" id="sandboxDataCountLabel">已同步 0 项网页内部数据</span>
+          
+          <!-- 🌟 常驻单步回滚按钮 -->
+          <button id="mainRollbackBtn" onclick="rollbackLastTurn()" class="px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed" disabled>
+            ↩️ 撤回最后一轮修改 (无记录)
+          </button>
+
+          <span class="text-[11px] text-zinc-400 font-mono" id="sandboxDataCountLabel">已同步 0 项网页数据</span>
           <button onclick="resetEntireProject()" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-xl ml-auto">
             🗑️ 清空所有数据
           </button>
         </div>
 
-        <!-- 架构寻址图谱 (展示每份文件的代码行数) -->
+        <!-- 🌟 架构寻址图谱 (支持逐个文件 AI 提取/编辑关键词) -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center">
-            <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
-              <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
-            </h3>
-            <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono">0 个文件 · 0 行代码</span>
+            <div>
+              <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
+                <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
+              </h3>
+              <p class="text-[11px] text-zinc-400 mt-0.5">点击每个文件旁的【✨ 智能提取关键词】，AI 会自动提炼全部代码关键词供你审查定制！</p>
+            </div>
+            <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0">0 个文件 · 0 行代码</span>
           </div>
-          <div id="projectMapContainer" class="space-y-2 max-h-80 overflow-y-auto">
-            <div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件与代码行数。</div>
+          <div id="projectMapContainer" class="space-y-2.5 max-h-96 overflow-y-auto pt-1">
+            <div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件与关键词提取功能。</div>
           </div>
         </div>
 
@@ -293,7 +306,46 @@
 
   </nav>
 
-  <!-- ==================== 4. 长按操作菜单弹窗 ==================== -->
+  <!-- ==================== 4. 模态弹窗区 ==================== -->
+
+  <!-- 🌟 专属弹窗：单文件智能关键词提取与编辑弹窗 -->
+  <div id="keywordEditModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-lg shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex justify-between items-center border-b border-zinc-100 pb-3">
+        <div>
+          <h4 class="text-sm font-bold text-zinc-900 flex items-center space-x-1.5">
+            <span>✨ 智能文件关键词提炼与定制</span>
+          </h4>
+          <p id="keywordModalFilePath" class="text-xs text-indigo-600 font-mono mt-0.5 font-semibold">js/app.js</p>
+        </div>
+        <button onclick="closeKeywordModal()" class="text-zinc-400 hover:text-zinc-600 p-1">✕</button>
+      </div>
+
+      <!-- 加载状态 -->
+      <div id="keywordModalLoading" class="py-8 flex flex-col items-center justify-center space-y-2 text-indigo-600 text-xs">
+        <svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <span class="animate-pulse font-medium">AI 正在深度研读该文件源码并提炼关键词...</span>
+      </div>
+
+      <!-- 编辑框主体 -->
+      <div id="keywordModalBody" class="space-y-2 hidden">
+        <label class="text-[11px] font-medium text-zinc-600 block">
+          AI 提炼的检索关键词与职责说明（可自由编辑修改）：
+        </label>
+        <textarea id="keywordEditTextarea" rows="5" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-800 focus:bg-white focus:border-zinc-900 focus:outline-none transition leading-relaxed"></textarea>
+        <p class="text-[10px] text-zinc-400">💡 提示：保留 <code>【检索关键词: xxx, xxx】</code> 格式，关键词越多越具体，后续 AI 找代码越精准！</p>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2 border-t border-zinc-100">
+        <button onclick="closeKeywordModal()" class="px-4 py-2 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition">取消更改</button>
+        <button id="saveKeywordBtn" onclick="saveCustomKeywords()" class="px-4 py-2 text-xs bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold transition shadow-sm" disabled>
+          💾 保存更改并应用
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 长按操作菜单弹窗 -->
   <div id="actionMenuModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50">
     <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-80 max-w-[92vw] shadow-2xl space-y-3">
       <div class="text-center">
@@ -329,39 +381,45 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_SPA_PERMANENT_V8';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_KEYWORDS_V12';
 
     let virtualFiles = {};          // 后台虚拟多文件
-    let projectMap = {};            // 功能寻址脑图
+    let projectMap = {};            // 功能寻址脑图 (含检索关键词)
     let chatHistory = [];           // 对话记忆
     let remoteModels = [];          // 模型列表
     let selectedModel = '';         // 当前选定模型
     let selectedActionIndex = null; // 当前选中的长按消息索引
     let pendingAttachments = [];    // 待发送附件
     let currentViewportMode = 'desktop'; // 当前视口模式
-    
-    // 🌟 核心新增：记录生成的 HTML 页面内部产生的 localStorage 真实数据！
-    let sandboxStorage = {}; 
+    let sandboxStorage = {};        // 网页内部真实产生的 localStorage 数据
+    let lastSnapshotState = null;   // 单步回滚备份
+    let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
 
+    // 🌟 强行约束 AI 必须进行多文件模块化拆分，并在图谱中写清明确的【检索关键词】
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【最核心原则 - 纯本地单页架构 (SPA) 规范】：
-1. 始终以 \`index.html\` 为主页面入口。
-2. 模块化文件规划：CSS 放入 \`css/\`，JS 逻辑放入 \`js/\`，数据放入 \`data/\`。
-3. 【绝对禁止物理跳转】：严禁使用 \`<a href="xxx.html">\` 或 \`location.href="xxx.html"\` 触发浏览器物理跳转！所有页面切换、设置项必须在本地单页内通过 DOM 显隐切换或弹窗组件实现。
-4. 【主动清理旧文件】：如果你在重构或删除某个旧功能，可以输出 \`<delete_file path="要删除的文件路径"/>\`，系统会自动将该文件从虚拟文件系统与架构图谱中彻底清除。
-5. 【架构认知图谱】：你必须在每次输出末尾包含或更新项目功能地图：
+【最核心原则 1 - 必须多文件模块化拆分】：
+1. 【严禁单文件大杂烩】：严禁把所有代码全部堆在一个 index.html 里！
+2. 必须积极主动地将工程合理拆分成多个模块文件，例如：
+   - 样式层：\`css/base.css\` (基础样式/主题), \`css/settings.css\` (设置样式), \`css/components.css\` 等
+   - 逻辑层：\`js/app.js\` (主控), \`js/settings.js\` (设置模块逻辑), \`js/utils.js\` (工具函数) 等
+   - 数据层：\`data/presets.json\` (预设数据), \`data/config.json\` 等
+3. 始终以 \`index.html\` 作为主入口引入这些 CSS 和 JS 文件。
+
+【最核心原则 2 - 架构图谱与极致详细的检索关键词规范】：
+每次在输出末尾更新 <project_map> 时，每个文件必须包含极其详尽、丰富的【检索关键词】（包括所有涉及的UI组件名、功能动作、函数名、数据字段、中文别名等，关键词越多越好，至少5-10个），格式必须严格如下：
 <project_map>
 {
-  "文件完整路径": "该文件具体负责的功能与模块描述"
+  "文件完整路径": "【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】该文件具体负责的功能、组件与函数逻辑详细说明"
 }
 </project_map>
-6. 【代码输出规范】：所有新建或修改的文件必须封装在：
-<file path="文件夹/文件名.扩展名">
-完整源码
-</file>
-7. 标签外用简明专业的中文说明改动点。`;
+
+【最核心原则 3 - 纯本地单页 SPA 规范与增量修改】：
+1. 页面切换、设置弹窗必须在单页内通过 DOM 显隐切换或弹窗组件实现，严禁生成会触发向外跳页的 <a> 链接！
+2. 仔细研读系统为你提供的【命中目标文件源码】(<target_file>)，只输出被修改或新建的文件 (<file path="...">)。
+3. 若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
+4. 标签外用简明专业的中文说明改动点。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -400,9 +458,6 @@
       if (tabKey === 'settings') renderProjectMapUI();
     }
 
-    // ==========================================
-    // 智能等比缩放多设备视口
-    // ==========================================
     function setDeviceViewport(mode) {
       if (mode) currentViewportMode = mode;
       mode = currentViewportMode;
@@ -460,9 +515,6 @@
       }
     }
 
-    // ==========================================
-    // ➕ 加号文件与图片多模态上传处理
-    // ==========================================
     function handleAttachmentUpload(event) {
       const files = Array.from(event.target.files);
       if (!files.length) return;
@@ -539,6 +591,66 @@
     }
 
     // ==========================================
+    // 🌟 基于【检索关键词】的精准语义寻址算法
+    // ==========================================
+    function selectTargetFilesByPrompt(prompt) {
+      const allFiles = Object.keys(virtualFiles);
+      if (allFiles.length === 0) return [];
+      if (allFiles.length <= 2) return allFiles;
+
+      const pLower = prompt.toLowerCase();
+      const scored = [];
+
+      allFiles.forEach(path => {
+        let score = 0;
+        const pName = path.toLowerCase();
+        const fullDesc = (projectMap[path] || '').toLowerCase();
+
+        // 1. 优先提取明确的【检索关键词】匹配
+        const kwMatch = /【检索关键词[:：]([^】]+)】/i.exec(fullDesc);
+        if (kwMatch && kwMatch[1]) {
+          const explicitKeywords = kwMatch[1].split(/[,，、\s]+/);
+          explicitKeywords.forEach(ek => {
+            const trimmed = ek.trim();
+            if (trimmed && pLower.includes(trimmed)) {
+              score += 15;
+            }
+          });
+        }
+
+        // 2. 文件名匹配
+        const baseName = pName.split('/').pop().split('.')[0];
+        if (baseName.length >= 2 && pLower.includes(baseName)) score += 6;
+        if (pLower.includes('css') && path.endsWith('.css')) score += 3;
+        if (pLower.includes('样式') && path.endsWith('.css')) score += 3;
+        if (pLower.includes('js') && path.endsWith('.js')) score += 3;
+        if (pLower.includes('逻辑') && path.endsWith('.js')) score += 3;
+        if (pLower.includes('html') && path.endsWith('.html')) score += 3;
+
+        // 3. 功能描述文本匹配
+        const generalWords = fullDesc.replace(/【[^】]*】/g, '').split(/[,，。；;\s\/\-_]+/);
+        generalWords.forEach(gw => {
+          if (gw && gw.length >= 2 && pLower.includes(gw)) {
+            score += 4;
+          }
+        });
+
+        if (path === 'index.html') score += 1;
+
+        scored.push({ path, score });
+      });
+
+      scored.sort((a, b) => b.score - a.score);
+
+      let targets = scored.filter(s => s.score > 2).map(s => s.path);
+      if (targets.length === 0) {
+        targets = ['index.html', allFiles.find(f => f.endsWith('.js')), allFiles.find(f => f.endsWith('.css'))].filter(Boolean);
+      }
+
+      return Array.from(new Set(targets.slice(0, 3)));
+    }
+
+    // ==========================================
     // AI 对话发送
     // ==========================================
     async function sendMessage() {
@@ -567,26 +679,45 @@
       pendingAttachments = [];
       renderAttachmentPreviews();
 
-      const preState = {
+      // 记录单步回滚快照
+      lastSnapshotState = {
         files: JSON.parse(JSON.stringify(virtualFiles)),
         projectMap: JSON.parse(JSON.stringify(projectMap)),
-        sandboxStorage: JSON.parse(JSON.stringify(sandboxStorage))
+        sandboxStorage: JSON.parse(JSON.stringify(sandboxStorage)),
+        time: new Date().toLocaleTimeString()
       };
 
       chatHistory.push({
         role: "user",
         content: prompt || '（用户上传了附件/图片并请求分析）',
         attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })),
-        preState: preState
+        preState: lastSnapshotState
       });
       renderChatMessages();
 
       persistAllData();
-      setLoading(true, `中转站 [${model}] 正在编写代码...`);
+      updateRollbackUI();
+
+      const targetPaths = selectTargetFilesByPrompt(prompt);
+      const targetNotice = targetPaths.length > 0 
+        ? ` (🎯 已根据关键词命中 ${targetPaths.length} 个目标文件: ${targetPaths.join(', ')})` 
+        : '';
+
+      setLoading(true, `中转站 [${model}] 正在定向编写${targetNotice}...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
         ? JSON.stringify(projectMap, null, 2) 
         : '项目全新创建中';
+
+      let targetedFilesPayload = "";
+      if (targetPaths.length > 0) {
+        targetedFilesPayload = `【系统根据关键词检索命中的目标文件源码（其余未变动文件已排除加载以节省消耗，请基于此增量修改）：】\n`;
+        targetPaths.forEach(tp => {
+          if (virtualFiles[tp]) {
+            targetedFilesPayload += `<target_file path="${tp}">\n${virtualFiles[tp]}\n</target_file>\n\n`;
+          }
+        });
+      }
 
       let attachedCodeContext = '';
       const imagePayloads = [];
@@ -602,7 +733,7 @@
         }
       });
 
-      const fullTextPrompt = `【当前已知项目架构地图】:\n${mapStr}\n\n${attachedCodeContext}\n\n【用户新指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【注意】：所有界面切换必须以纯本地 SPA（DOM显示切换或弹窗）方式实现，严禁生成向外跳转的 <a> 链接！若需清理无用旧文件，请输出 <delete_file path="..."/>。\n请修改或新增文件，并在末尾更新 <project_map>。`;
+      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【规范要求】：必须积极进行多文件模块化拆分，只输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>，并在末尾更新包含超详细【检索关键词】的 <project_map>。`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -654,9 +785,10 @@
 
         if (updatedFiles.length > 0) {
           refreshPreview();
-          showToast('✨ 代码生成完毕！点击【预览HTML】体验');
+          showToast('✨ 代码已定向更新！点击【预览HTML】体验');
         }
         persistAllData();
+        updateRollbackUI();
 
       } catch (err) {
         chatHistory.push({ 
@@ -665,23 +797,180 @@
         });
         renderChatMessages();
         persistAllData();
+        updateRollbackUI();
       } finally {
         setLoading(false);
       }
     }
 
     // ==========================================
-    // 🌟 全量 JSON 导出与恢复 (代码、图谱、API、及网页内部数据全包)
+    // 🌟 单文件智能关键词提取与编辑逻辑
+    // ==========================================
+    async function triggerExtractKeywords(filePath) {
+      const code = virtualFiles[filePath];
+      if (!code) {
+        showToast('该文件暂无源码内容');
+        return;
+      }
+
+      const apiKey = document.getElementById('apiKey').value.trim();
+      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+
+      if (!baseUrl || !apiKey || !model) {
+        showToast('请先配置好 API 参数');
+        switchBottomTab('api');
+        return;
+      }
+
+      baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+      if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
+
+      currentEditingFile = filePath;
+      document.getElementById('keywordModalFilePath').innerText = `${filePath} (${code.split('\n').length} 行代码)`;
+      document.getElementById('keywordModalLoading').classList.remove('hidden');
+      document.getElementById('keywordModalBody').classList.add('hidden');
+      document.getElementById('saveKeywordBtn').disabled = true;
+
+      const modal = document.getElementById('keywordEditModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      try {
+        const prompt = `请深度研读以下前端文件的源码，为其提炼出极其详尽、丰富的中文【检索关键词】和职责说明。
+要求：
+1. 关键词必须包含该文件涉及的全部 UI 组件名、页面名称、业务动作、函数名、状态字段等，至少提供 6-10 个精准词。
+2. 必须严格按照如下单行格式输出，禁止任何多余前缀：
+【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】该文件具体负责的功能、组件与函数逻辑详细说明。
+
+文件路径：${filePath}
+源码内容如下：
+\`\`\`
+${code}
+\`\`\``;
+
+        const res = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.1
+          })
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        const extracted = data.choices[0].message.content.trim();
+
+        document.getElementById('keywordEditTextarea').value = extracted;
+        document.getElementById('keywordModalLoading').classList.add('hidden');
+        document.getElementById('keywordModalBody').classList.remove('hidden');
+        document.getElementById('saveKeywordBtn').disabled = false;
+
+      } catch (err) {
+        // 出错时使用现有图谱内容作为后备
+        document.getElementById('keywordEditTextarea').value = projectMap[filePath] || `【检索关键词: ${filePath}】负责基础功能模块`;
+        document.getElementById('keywordModalLoading').classList.add('hidden');
+        document.getElementById('keywordModalBody').classList.remove('hidden');
+        document.getElementById('saveKeywordBtn').disabled = false;
+        showToast(`AI 提取失败: ${err.message}，已载入现有描述供手动编辑`);
+      }
+    }
+
+    function saveCustomKeywords() {
+      if (!currentEditingFile) return;
+      const text = document.getElementById('keywordEditTextarea').value.trim();
+      if (!text) {
+        showToast('关键词说明不能为空');
+        return;
+      }
+
+      projectMap[currentEditingFile] = text;
+      persistAllData(true);
+      renderProjectMapUI();
+      closeKeywordModal();
+      showToast(`✨ ${currentEditingFile} 专属关键词已保存并生效！`);
+    }
+
+    function closeKeywordModal() {
+      const modal = document.getElementById('keywordEditModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentEditingFile = null;
+    }
+
+    // ==========================================
+    // 单步撤销回滚
+    // ==========================================
+    function rollbackLastTurn() {
+      if (!lastSnapshotState) {
+        showToast('暂无可回滚的上一轮状态');
+        return;
+      }
+
+      if (confirm(`确认撤回最后一轮修改？（将恢复至 ${lastSnapshotState.time} 的代码与文件状态）`)) {
+        virtualFiles = JSON.parse(JSON.stringify(lastSnapshotState.files));
+        projectMap = JSON.parse(JSON.stringify(lastSnapshotState.projectMap));
+        sandboxStorage = JSON.parse(JSON.stringify(lastSnapshotState.sandboxStorage));
+
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'assistant') {
+          chatHistory.pop();
+        }
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+          chatHistory.pop();
+        }
+
+        lastSnapshotState = null;
+
+        renderChatMessages();
+        refreshPreview();
+        refreshUIElements();
+        persistAllData();
+        updateRollbackUI();
+
+        showToast('↩️ 已成功撤销最后一轮的所有文件改动！');
+      }
+    }
+
+    function updateRollbackUI() {
+      const quickBtn = document.getElementById('quickRollbackBtn');
+      const mainBtn = document.getElementById('mainRollbackBtn');
+
+      if (lastSnapshotState) {
+        if (quickBtn) {
+          quickBtn.disabled = false;
+          quickBtn.className = "px-2 py-0.5 rounded text-xs font-semibold transition bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs hover:bg-indigo-100";
+        }
+        if (mainBtn) {
+          mainBtn.disabled = false;
+          mainBtn.className = "px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-xl border border-indigo-200 transition shadow-2xs";
+          mainBtn.innerText = `↩️ 撤回最后一轮修改 (${lastSnapshotState.time})`;
+        }
+      } else {
+        if (quickBtn) {
+          quickBtn.disabled = true;
+          quickBtn.className = "px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed";
+        }
+        if (mainBtn) {
+          mainBtn.disabled = true;
+          mainBtn.className = "px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed";
+          mainBtn.innerText = `↩️ 撤回最后一轮修改 (无记录)`;
+        }
+      }
+    }
+
+    // ==========================================
+    // 全量 JSON 导出与恢复
     // ==========================================
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "8.0",
+        version: "12.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
         chatHistory: chatHistory,
-        // 🌟 导出网页内部产生的所有 localStorage 真实数据
         sandboxStorage: sandboxStorage,
         apiConfig: {
           baseUrl: document.getElementById('apiBaseUrl').value.trim(),
@@ -694,7 +983,7 @@
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       saveAs(blob, `ai-studio-full-backup-${Date.now()}.json`);
-      showToast('🎉 全量工程 JSON 已下载（含网页内部数据）！');
+      showToast('🎉 全量工程 JSON 已下载！');
     }
 
     function importProjectJson(e) {
@@ -711,8 +1000,8 @@
             chatHistory = data.chatHistory || [];
             remoteModels = data.remoteModels || [];
             selectedModel = data.selectedModel || '';
-            // 🌟 恢复网页内部产生的数据
             sandboxStorage = data.sandboxStorage || {};
+            lastSnapshotState = null;
 
             if (data.apiConfig) {
               document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
@@ -725,7 +1014,8 @@
             refreshPreview();
             refreshUIElements();
             persistAllData();
-            showToast('🎉 全量备份恢复成功！网页内部数据已同步就绪');
+            updateRollbackUI();
+            showToast('🎉 全量备份恢复成功！');
             switchBottomTab('preview');
           }
         } catch (err) {
@@ -826,7 +1116,7 @@
     }
 
     // ==========================================
-    // 脑图解析与渲染 (精准统计每个文件的代码行数)
+    // 🌟 寻址图谱渲染 (支持逐个文件智能提取关键词)
     // ==========================================
     function parseProjectMapFromOutput(text) {
       const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
@@ -847,7 +1137,7 @@
       const allPaths = Array.from(new Set([...Object.keys(virtualFiles), ...Object.keys(projectMap)]));
       
       if (allPaths.length === 0) {
-        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件与代码行数。</div>';
+        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件、代码行数与检索关键词。</div>';
         if (totalBadge) totalBadge.innerText = '0 个文件 · 0 行代码';
         return;
       }
@@ -859,16 +1149,36 @@
         const lines = content ? content.split('\n').length : 0;
         totalLinesCount += lines;
 
-        const desc = projectMap[path] || '基础核心模块';
+        const rawDesc = projectMap[path] || '基础核心模块';
         const isDeleted = !virtualFiles[path];
 
+        // 提取关键词部分与说明部分
+        let keywordsBadge = '';
+        let cleanDesc = rawDesc;
+        const kwMatch = /【检索关键词[:：]([^】]+)】/i.exec(rawDesc);
+        if (kwMatch && kwMatch[1]) {
+          keywordsBadge = `<span class="bg-indigo-50 border border-indigo-200 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-mono">🔑 ${escapeHtml(kwMatch[1])}</span>`;
+          cleanDesc = rawDesc.replace(/【检索关键词[:：][^】]+】/i, '').trim();
+        }
+
         return `
-          <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col gap-1.5 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-mono font-bold text-zinc-900 bg-white px-2 py-0.5 rounded border border-zinc-200 ${isDeleted ? 'line-through opacity-50' : ''}">${escapeHtml(path)}</span>
-              <span class="text-[10px] font-mono text-zinc-500 bg-zinc-200/70 px-1.5 py-0.5 rounded font-medium">${lines} 行代码</span>
+          <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col gap-2 text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-2 truncate">
+                <span class="font-mono font-bold text-zinc-900 bg-white px-2 py-0.5 rounded border border-zinc-200 ${isDeleted ? 'line-through opacity-50' : ''}">${escapeHtml(path)}</span>
+                <span class="text-[10px] font-mono text-zinc-500 bg-zinc-200/70 px-1.5 py-0.5 rounded font-medium">${lines} 行</span>
+              </div>
+              
+              <!-- 🌟 每一个文件专属的智能关键词提炼按钮 -->
+              ${!isDeleted ? `
+                <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 shrink-0 shadow-2xs">
+                  <span>✨ 智能提取关键词</span>
+                </button>
+              ` : ''}
             </div>
-            <p class="text-zinc-600 text-[11px] leading-relaxed">${escapeHtml(desc)}</p>
+
+            ${keywordsBadge ? `<div class="mt-0.5">${keywordsBadge}</div>` : ''}
+            <p class="text-zinc-600 text-[11px] leading-relaxed">${escapeHtml(cleanDesc)}</p>
           </div>
         `;
       }).join('');
@@ -886,7 +1196,7 @@
       if (chatHistory.length === 0) {
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 智能多模态工作坊已就绪</div>
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 智能模块化多文件工作坊</div>
             <p>输入你的需求，或点 ➕ 上传参考图与已有代码文件。</p>
           </div>
         `;
@@ -1081,7 +1391,7 @@
     }
 
     // ==========================================
-    // 纯本地沙箱打包与渲染 (带沙箱独立存储注入)
+    // 纯本地沙箱打包与渲染
     // ==========================================
     function parseFilesFromOutput(text) {
       const updated = [];
@@ -1138,12 +1448,10 @@
         }
       }
 
-      // 安全序列化沙箱存储初值
       const serializedSandboxStorage = encodeURIComponent(JSON.stringify(sandboxStorage));
 
       const runtimeBridge = `
       <script>
-        // 🌟 虚拟独立沙箱存储引擎：无缝代理并持久化 iframe 内部产生的 localStorage
         (function() {
           let memoryStorage = {};
           try {
@@ -1204,7 +1512,6 @@
       if (!e.data) return;
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
       
-      // 🌟 实时接收生成的网页内部产生的数据变动
       if (e.data.type === 'SANDBOX_STORAGE_SET') {
         sandboxStorage[e.data.key] = e.data.value;
         persistAllData();
@@ -1270,6 +1577,7 @@
         renderChatMessages();
         refreshPreview();
         refreshUIElements();
+        updateRollbackUI();
       } catch (e) {
         console.error('加载本地存储失败:', e);
       }
@@ -1287,11 +1595,12 @@
 
     function resetEntireProject() {
       if (confirm('⚠️ 警告：彻底清空全部代码、对话与网页内部数据？')) {
-        virtualFiles = {}; projectMap = {}; chatHistory = []; sandboxStorage = {};
+        virtualFiles = {}; projectMap = {}; chatHistory = []; sandboxStorage = {}; lastSnapshotState = null;
         localStorage.removeItem(STORAGE_KEY);
         renderChatMessages();
         refreshPreview();
         refreshUIElements();
+        updateRollbackUI();
         showToast('项目已清空');
         switchBottomTab('maker');
       }
