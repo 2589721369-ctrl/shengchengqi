@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 纯本地智能工作台</title>
+  <title>AI Web Studio - 视觉审查拾取版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🧠 全链路协同感知 (HTML+JS+CSS):</span>
-          <span class="truncate">自动关联绑定三件套，彻底杜绝样式脱节。</span>
+          <span class="text-indigo-600 font-semibold">🔍 视觉拾取诊断已联动:</span>
+          <span class="truncate">在预览点击坏元素，直接带现场证据来修。</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -64,8 +64,8 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 协同感知与模块化工作坊 (v17.0)</div>
-          <p>已启用<b>全链路依赖协同送达 + Scoped CSS 命名空间隔离</b>：AI 修改时会把 HTML/JS/CSS 完整关联读全后再动手术，并且可以在【其他设置】里一键对大文件进行<b>智能瘦身拆分</b>！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 视觉审查与精准修复工作坊 (v18.0)</div>
+          <p>遇到<b>按钮点不开</b>或<b>排版混乱</b>？切到底部【预览HTML】，点击顶部的 <b>【🔍 拾取审查元素】</b> 并点选坏掉的部件，系统会自动抓取真实 DOM 与图层证据直接发给 AI 修复！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
@@ -78,15 +78,24 @@
         <span id="stepProgressText" class="truncate font-medium">AI 正在深度思考分析...</span>
       </div>
 
-      <!-- 输入栏 (含 ➕ 上传区) -->
+      <!-- 输入栏 (含 ➕ 上传区与 🔍 拾取证据卡片) -->
       <div class="p-3 border-t border-zinc-200 bg-white shrink-0">
         <div class="max-w-3xl mx-auto border border-zinc-300 rounded-2xl focus-within:border-zinc-900 transition bg-white shadow-sm overflow-hidden">
           
+          <!-- 🌟 视觉拾取元素诊断卡片 (从预览中抓取后展示) -->
+          <div id="inspectorBadgeContainer" class="hidden px-3 pt-2.5 flex items-center justify-between bg-indigo-50/70 border-b border-indigo-100 text-xs">
+            <div class="flex items-center space-x-2 min-w-0 pr-2">
+              <span class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0">已锁定元素</span>
+              <span id="inspectorBadgeText" class="font-mono text-indigo-900 truncate font-semibold">&lt;button id="btn"&gt;</span>
+            </div>
+            <button onclick="clearInspectorTarget()" class="text-indigo-400 hover:text-red-500 font-bold px-1" title="移除拾取现场证据">✕</button>
+          </div>
+
           <!-- 附件预览行 -->
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入需求，或点 ➕ 上传图片与代码文件让 AI 参照修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="描述你的修改需求，或在预览里点击【🔍 拾取审查元素】直接锁定坏掉的按钮..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -109,7 +118,7 @@
 
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
-      <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+      <div class="h-11 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
         <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
@@ -117,7 +126,11 @@
           <button onclick="setDeviceViewport('mobile')" id="btn-mobile" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">手机</button>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-1.5">
+          <!-- 🌟 视觉审查拾取器开关按钮 -->
+          <button id="toggleInspectorBtn" onclick="toggleInspectorMode()" class="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-xs font-semibold transition flex items-center space-x-1 shadow-2xs">
+            <span>🔍 拾取审查元素</span>
+          </button>
           <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="scaleIndicator">100%</span>
           <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="重新编译刷新">🔄</button>
           <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
@@ -198,7 +211,7 @@
       </div>
     </section>
 
-    <!-- ========== 视图 4：其他设置 (排版全面重构优化) ========== -->
+    <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
         <!-- 版本标识 -->
@@ -206,11 +219,11 @@
           <div>
             <div class="flex items-center space-x-2">
               <h2 class="text-base font-bold text-zinc-900">项目资产与架构寻址管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v17.0 图谱重构版</span>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.0 视觉审查拾取增强版</span>
             </div>
-            <p class="text-xs text-zinc-500 mt-0.5">代码行数超大字号清晰展示，关键词与操作按钮独立分层。</p>
+            <p class="text-xs text-zinc-500 mt-0.5">支持画面点击直接抓取故障元素，精准直达底层代码。</p>
           </div>
-          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.17</span>
+          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.18</span>
         </div>
 
         <!-- 顶置三大卡片 -->
@@ -257,7 +270,7 @@
           </button>
         </div>
 
-        <!-- 🌟 寻址图谱卡片列表 (全新分层高质感排版) -->
+        <!-- 寻址图谱 -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center border-b border-zinc-100 pb-2.5">
             <div>
@@ -415,7 +428,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_V17_RESTRUCTURED';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_INSPECTOR_V18';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图 (含检索关键词)
@@ -429,31 +442,27 @@
     let lastSnapshotState = null;   // 单步回滚备份
     let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
     let currentSlimmingFile = null; // 当前正在瘦身的目标文件
+    
+    // 🌟 视觉审查拾取器状态
+    let isInspectorActive = false;
+    let pickedInspectorElement = null;
 
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【🚨 核心铁律 1 - Scoped CSS 命名空间隔离守则 🚨】：
+【🚨 核心铁律 1 - 视觉审查与故障精准修复准则 🚨】：
+1. 当用户提供了【视觉审查拾取器捕获的故障现场证据】时，你必须以最高优先级修复该指定元素的点击、遮挡或样式 Bug！
+2. 检查该元素是否有事件监听缺失、ID/Class 名拼写错误、或者被隐形蒙版（fixed inset-0 缺少 pointer-events-none）遮挡！
+
+【🚨 核心铁律 2 - Scoped CSS 命名空间隔离守则 🚨】：
 1. 绝对禁止编写全局无命名空间的标签选择器（如 span, div, p, .card, .item 等）！
-2. 所有 CSS 规则必须以模块的顶级专属 ID 或类名为前缀（例如 \`#persona-modal .card\`, \`#chat-room .bubble\`, \`#settings-drawer .btn\`），或者使用 Tailwind CSS 局部原子类，彻底杜绝跨文件、跨组件样式污染！
+2. 所有 CSS 规则必须以模块顶级 ID 为前缀（例如 \`#persona-modal .card\`, \`#chat-room .bubble\`），或者使用 Tailwind CSS 原子类，彻底杜绝跨文件、跨组件样式污染！
 
-【🚨 核心铁律 2 - 全链路协同与微创手术守则 🚨】：
-1. 系统已为你提供了【相关目标文件的 HTML+JS+CSS 源码三件套】(<target_file>)。
-2. 你在修改 JS 业务逻辑时，必须严格对照对应的 HTML 结构和 CSS 类名，保持三者命名 100% 契合统一，绝不能凭空脑补类名！
-3. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！
-4. 严禁使用覆盖父容器 innerHTML 的方式注入元素，防止破坏已有按钮的事件监听！
-5. 确保弹窗与遮罩层在隐藏时不会产生隐形透明膜阻挡底层页面点击！
-
-【核心原则 3 - 多文件模块化拆分与关键词规范】：
-1. 严禁单文件大杂烩，积极主动地进行模块化拆分。
-2. 每次输出末尾必须为本次修改或新建的文件更新包含详细【检索关键词】的 <project_map>：
-<project_map>
-{
-  "文件完整路径": "【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】更新后的最新完整职责说明"
-}
-</project_map>
-3. 若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
-4. 标签外用简明专业的中文说明改动点与实现细节。`;
+【🚨 核心铁律 3 - 全链路协同与微创手术守则 🚨】：
+1. 必须仔细研读系统为你提供的 HTML+JS+CSS 协同源码 (<target_file>)。
+2. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！严禁覆盖父容器 innerHTML 导致事件监听失效！
+3. 纯本地单页 SPA 规范，严禁生成会触发向外跳页的 <a> 链接！
+4. 每次输出末尾必须更新包含详细【检索关键词】的 <project_map>。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -549,6 +558,36 @@
       }
     }
 
+    // ==========================================
+    // 🌟 视觉元素审查拾取器核心控制
+    // ==========================================
+    function toggleInspectorMode() {
+      isInspectorActive = !isInspectorActive;
+      const btn = document.getElementById('toggleInspectorBtn');
+      const iframe = document.getElementById('previewFrame');
+
+      if (isInspectorActive) {
+        btn.className = "px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm animate-pulse";
+        btn.innerHTML = `<span>🎯 点击画面中的元素进行拾取...</span>`;
+        showToast('🔍 拾取模式已开启：请在画面中点击有问题的按钮或组件！');
+      } else {
+        btn.className = "px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-xs font-semibold transition flex items-center space-x-1 shadow-2xs";
+        btn.innerHTML = `<span>🔍 拾取审查元素</span>`;
+      }
+
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'SET_INSPECTOR_MODE', enabled: isInspectorActive }, '*');
+      }
+    }
+
+    function clearInspectorTarget() {
+      pickedInspectorElement = null;
+      document.getElementById('inspectorBadgeContainer').classList.add('hidden');
+    }
+
+    // ==========================================
+    // 附件与上传
+    // ==========================================
     function handleAttachmentUpload(event) {
       const files = Array.from(event.target.files);
       if (!files.length) return;
@@ -693,7 +732,7 @@
 
       return {
         target_files: Array.from(expandedTargets).slice(0, 5),
-        reason: decisionReason + " (已自动完成 HTML/JS/CSS 全链路协同绑定)"
+        reason: decisionReason + " (已自动完成全链路协同绑定)"
       };
     }
 
@@ -748,7 +787,7 @@ ${code}
       const input = document.getElementById('promptInput');
       const prompt = input.value.trim();
       
-      if (!prompt && pendingAttachments.length === 0) return;
+      if (!prompt && pendingAttachments.length === 0 && !pickedInspectorElement) return;
 
       const apiKey = document.getElementById('apiKey').value.trim();
       let baseUrl = document.getElementById('apiBaseUrl').value.trim();
@@ -770,6 +809,10 @@ ${code}
       pendingAttachments = [];
       renderAttachmentPreviews();
 
+      const currentInspectorTarget = pickedInspectorElement;
+      clearInspectorTarget();
+
+      // 记录单步回滚快照
       lastSnapshotState = {
         files: JSON.parse(JSON.stringify(virtualFiles)),
         projectMap: JSON.parse(JSON.stringify(projectMap)),
@@ -779,8 +822,9 @@ ${code}
 
       chatHistory.push({
         role: "user",
-        content: prompt || '（用户上传了附件/图片并请求分析）',
+        content: prompt || '（用户锁定了故障元素并请求诊断修复）',
         attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })),
+        inspectorTarget: currentInspectorTarget ? { tag: currentInspectorTarget.tag, id: currentInspectorTarget.id } : null,
         preState: lastSnapshotState
       });
       renderChatMessages();
@@ -788,17 +832,19 @@ ${code}
       persistAllData();
       updateRollbackUI();
 
+      // 🌟 第一阶段：AI 架构师深度分析
       setLoading(true, `🧠 AI 架构师正在分析需求并协同检索 HTML+JS+CSS...`);
       
       let decision = { target_files: [], reason: "" };
       if (Object.keys(virtualFiles).length > 0) {
-        decision = await planTargetFilesWithAI(prompt, baseUrl, apiKey, model);
+        decision = await planTargetFilesWithAI(prompt + (currentInspectorTarget ? ` [目标元素: ${currentInspectorTarget.tag}#${currentInspectorTarget.id}]` : ''), baseUrl, apiKey, model);
       }
 
       const targetNotice = decision.target_files.length > 0 
         ? `🎯 锁定协同文件: ${decision.target_files.join(', ')}` 
         : `正在从零创建项目`;
 
+      // 🌟 第二阶段：协同定向编写与微创手术
       setLoading(true, `正在微创编码: ${targetNotice}...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
@@ -815,6 +861,21 @@ ${code}
         });
       }
 
+      // 🌟 构造视觉拾取证据块
+      let inspectorEvidencePayload = "";
+      if (currentInspectorTarget) {
+        inspectorEvidencePayload = `
+【🔍 视觉审查拾取器捕获的故障现场绝对证据】：
+- 目标标签: <${currentInspectorTarget.tag}${currentInspectorTarget.id ? ' id="' + currentInspectorTarget.id + '"' : ''}${currentInspectorTarget.className ? ' class="' + currentInspectorTarget.className + '"' : ''}>
+- 元素层级路径: ${currentInspectorTarget.path}
+- 关键计算样式: display=${currentInspectorTarget.computed.display}, visibility=${currentInspectorTarget.computed.visibility}, pointerEvents=${currentInspectorTarget.computed.pointerEvents}, zIndex=${currentInspectorTarget.computed.zIndex}, position=${currentInspectorTarget.computed.position}
+- 元素现场代码片段:
+\`\`\`html
+${currentInspectorTarget.outerHTML}
+\`\`\`
+请重点排查：该元素的点击事件是否绑定成功、是否存在上层透明蒙版（fixed inset-0 缺少 pointer-events-none）遮挡导致点不到、或者 ID/Class 命名不一致问题，精准修复！\n\n`;
+      }
+
       let attachedCodeContext = '';
       const imagePayloads = [];
 
@@ -829,7 +890,7 @@ ${code}
         }
       });
 
-      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
+      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}${inspectorEvidencePayload}${attachedCodeContext}【用户最新修改指令】: ${prompt || '请根据视觉拾取证据修复该元素的所有故障。'}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，并在末尾更新 <project_map>！`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -883,7 +944,7 @@ ${code}
           showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 代码已协同更新 (${updated.join(', ')})！`);
+          showToast(`✨ 故障已定向修复 (${updated.join(', ')})！`);
 
           const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
           if (unmappedFiles.length > 0) {
@@ -907,7 +968,7 @@ ${code}
     }
 
     // ==========================================
-    // 一键智能文件瘦身与自动拆分逻辑
+    // 智能瘦身拆分与关键词提取
     // ==========================================
     function triggerSlimFile(filePath) {
       const code = virtualFiles[filePath];
@@ -949,9 +1010,6 @@ ${code}
       sendMessage();
     }
 
-    // ==========================================
-    // 防截断安全代码解析器
-    // ==========================================
     function parseFilesFromOutputSafe(text) {
       const updated = [];
       let hasTruncation = false;
@@ -987,9 +1045,6 @@ ${code}
       return { updated, hasTruncation };
     }
 
-    // ==========================================
-    // 单文件智能关键词提取与编辑逻辑
-    // ==========================================
     async function triggerExtractKeywords(filePath) {
       const code = virtualFiles[filePath];
       if (!code) {
@@ -1149,7 +1204,7 @@ ${code}
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "17.0",
+        version: "18.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -1299,7 +1354,7 @@ ${code}
     }
 
     // ==========================================
-    // 🌟 寻址图谱渲染 (全新分层高质感排版，代码行数超大超清晰)
+    // 寻址图谱渲染
     // ==========================================
     function parseProjectMapFromOutput(text) {
       const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
@@ -1355,7 +1410,7 @@ ${code}
 
         return `
           <div class="bg-white border ${isBloated ? 'border-amber-300 shadow-xs' : 'border-zinc-200'} rounded-2xl p-3.5 space-y-2.5 transition hover:border-zinc-300">
-            <!-- 顶栏：文件路径 + 超清晰高亮行数徽章 (绝不拥挤，左右分明) -->
+            <!-- 顶栏：文件路径 + 超清晰高亮行数徽章 -->
             <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
               <div class="flex items-center space-x-1.5 min-w-0 pr-2">
                 <span class="text-sm shrink-0">${icon}</span>
@@ -1380,7 +1435,7 @@ ${code}
             <!-- 描述文字 -->
             <p class="text-zinc-600 text-[11px] leading-relaxed break-words">${escapeHtml(cleanDesc)}</p>
 
-            <!-- 底部：独立操作按钮栏 (手机端绝不挤压) -->
+            <!-- 底部：独立操作按钮栏 -->
             ${!isDeleted ? `
               <div class="flex items-center justify-end space-x-2 pt-1 border-t border-zinc-50">
                 ${isBloated ? `
@@ -1410,8 +1465,8 @@ ${code}
       if (chatHistory.length === 0) {
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 协同感知与模块化工作坊 (v17.0)</div>
-            <p>输入你的需求，或点 ➕ 上传参考图与已有代码文件。</p>
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 视觉审查与精准修复工作坊 (v18.0)</div>
+            <p>输入你的需求，或在预览里点击 🔍 拾取故障元素带证据提问。</p>
           </div>
         `;
         return;
@@ -1431,9 +1486,21 @@ ${code}
             `;
           }
 
+          let inspectorBadge = '';
+          if (msg.inspectorTarget) {
+            inspectorBadge = `
+              <div class="flex justify-end mb-1">
+                <span class="bg-indigo-600/90 text-white text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold shadow-2xs">
+                  🎯 锁定故障: &lt;${msg.inspectorTarget.tag}${msg.inspectorTarget.id ? '#' + msg.inspectorTarget.id : ''}&gt;
+                </span>
+              </div>
+            `;
+          }
+
           return `
             <div class="flex flex-col items-end msg-container" data-index="${index}">
               ${attachBadges}
+              ${inspectorBadge}
               <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按弹出操作菜单">
                 ${escapeHtml(msg.content)}
               </div>
@@ -1605,7 +1672,7 @@ ${code}
     }
 
     // ==========================================
-    // 纯本地沙箱打包与渲染
+    // 纯本地沙箱打包与渲染 (注入视觉拾取器探针)
     // ==========================================
     function refreshPreview() {
       const iframe = document.getElementById('previewFrame');
@@ -1641,6 +1708,7 @@ ${code}
 
       const runtimeBridge = `
       <script>
+        // 虚拟独立沙箱存储
         (function() {
           let memoryStorage = {};
           try {
@@ -1673,6 +1741,93 @@ ${code}
           } catch(e) {}
         })();
 
+        // 🌟 视觉审查拾取器探针 (支持高亮与点击捕获证据)
+        (function() {
+          let inspectorActive = false;
+          let highlightOverlay = null;
+
+          function createHighlightOverlay() {
+            if (highlightOverlay) return;
+            highlightOverlay = document.createElement('div');
+            highlightOverlay.id = '__inspector_overlay__';
+            highlightOverlay.style.cssText = 'position:fixed;pointer-events:none;z-index:999999;border:2px dashed #4f46e5;background:rgba(79,70,229,0.15);transition:all 0.1s ease;display:none;';
+            document.body.appendChild(highlightOverlay);
+          }
+
+          function getElementPath(el) {
+            const path = [];
+            while (el && el.nodeType === Node.ELEMENT_NODE && el !== document.body) {
+              let selector = el.tagName.toLowerCase();
+              if (el.id) {
+                selector += '#' + el.id;
+                path.unshift(selector);
+                break;
+              } else if (el.className && typeof el.className === 'string') {
+                selector += '.' + el.className.trim().split(/\\s+/)[0];
+              }
+              path.unshift(selector);
+              el = el.parentElement;
+            }
+            return path.join(' > ');
+          }
+
+          function updateOverlay(el) {
+            if (!inspectorActive || !el || el === document.body || el === highlightOverlay) {
+              if (highlightOverlay) highlightOverlay.style.display = 'none';
+              return;
+            }
+            createHighlightOverlay();
+            const rect = el.getBoundingClientRect();
+            highlightOverlay.style.left = rect.left + 'px';
+            highlightOverlay.style.top = rect.top + 'px';
+            highlightOverlay.style.width = rect.width + 'px';
+            highlightOverlay.style.height = rect.height + 'px';
+            highlightOverlay.style.display = 'block';
+          }
+
+          window.addEventListener('message', e => {
+            if (e.data && e.data.type === 'SET_INSPECTOR_MODE') {
+              inspectorActive = !!e.data.enabled;
+              createHighlightOverlay();
+              if (!inspectorActive && highlightOverlay) {
+                highlightOverlay.style.display = 'none';
+              }
+            }
+          });
+
+          document.addEventListener('mouseover', e => {
+            if (inspectorActive) updateOverlay(e.target);
+          }, true);
+
+          document.addEventListener('click', e => {
+            if (inspectorActive) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const target = e.target;
+              const cs = window.getComputedStyle(target);
+              
+              const info = {
+                tag: target.tagName.toLowerCase(),
+                id: target.id || '',
+                className: target.className || '',
+                outerHTML: target.outerHTML.substring(0, 450),
+                path: getElementPath(target),
+                computed: {
+                  display: cs.display,
+                  visibility: cs.visibility,
+                  pointerEvents: cs.pointerEvents,
+                  zIndex: cs.zIndex,
+                  position: cs.position
+                }
+              };
+
+              window.parent.postMessage({ type: 'INSPECTOR_ELEMENT_PICKED', data: info }, '*');
+              if (highlightOverlay) highlightOverlay.style.display = 'none';
+            }
+          }, true);
+        })();
+
         ['log', 'warn', 'error', 'info'].forEach(t => {
           const o = console[t];
           console[t] = (...a) => {
@@ -1681,17 +1836,6 @@ ${code}
           };
         });
         window.onerror = (m, u, l) => window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: m + ' (行 ' + l + ')' }, '*');
-        
-        document.addEventListener('click', e => {
-          const a = e.target.closest('a');
-          if (a && a.getAttribute('href')) {
-            const h = a.getAttribute('href').trim();
-            if (!h.startsWith('javascript:') && !h.startsWith('#')) {
-              e.preventDefault();
-              console.warn('[沙箱安全拦截] 已阻止跳出本地页面: ' + h);
-            }
-          }
-        });
       <\/script>
       `;
       return runtimeBridge + html;
@@ -1701,6 +1845,19 @@ ${code}
       if (!e.data) return;
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
       
+      // 🌟 接收视觉审查拾取到的元素数据
+      if (e.data.type === 'INSPECTOR_ELEMENT_PICKED') {
+        pickedInspectorElement = e.data.data;
+        toggleInspectorMode(); // 关闭拾取模式
+        switchBottomTab('maker'); // 自动跳转至制作对话页
+
+        document.getElementById('inspectorBadgeContainer').classList.remove('hidden');
+        document.getElementById('inspectorBadgeText').innerText = `<${pickedInspectorElement.tag}${pickedInspectorElement.id ? '#' + pickedInspectorElement.id : ''}> (${pickedInspectorElement.path})`;
+        
+        showToast('🎯 已捕获目标元素现场证据！请描述你的修复需求');
+        document.getElementById('promptInput').focus();
+      }
+
       if (e.data.type === 'SANDBOX_STORAGE_SET') {
         sandboxStorage[e.data.key] = e.data.value;
         persistAllData();
