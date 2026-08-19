@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 防破坏微创版</title>
+  <title>AI Web Studio - 协同感知与智能瘦身版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🛡️ 微创防破坏模式已锁定:</span>
-          <span class="truncate">严格保护现有代码、UI与点击事件。</span>
+          <span class="text-indigo-600 font-semibold">🧠 全链路协同感知 (HTML+JS+CSS):</span>
+          <span class="truncate">自动关联绑定三件套，彻底杜绝样式脱节。</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -64,8 +64,8 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 微创防破坏工作坊 (v15.0)</div>
-          <p>已启用<b>两阶段 AI 架构师决策 + 严格防破坏铁律</b>：AI 在修改时必须严格保留现有 DOM ID、样式与点击事件，绝不擅自改乱其他功能！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 协同感知与模块化工作坊 (v16.0)</div>
+          <p>已启用<b>全链路依赖协同送达 + Scoped CSS 命名空间隔离</b>：AI 修改时会把 HTML/JS/CSS 完整关联读全后再动手术，并且可以在【其他设置】里一键对大文件进行<b>智能瘦身拆分</b>！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
@@ -86,7 +86,7 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入你的修改需求（AI 将在严格保护现有功能的前提下进行微创修改）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="输入需求，或点 ➕ 上传图片与代码文件让 AI 参照修改..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -201,16 +201,16 @@
     <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
-        <!-- 🌟 显眼的版本号展示区域 -->
+        <!-- 版本标识 -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-zinc-200/80 pb-3">
           <div>
             <div class="flex items-center space-x-2">
-              <h2 class="text-base font-bold text-zinc-900">项目资产与寻址图谱管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v15.0 防破坏微创版</span>
+              <h2 class="text-base font-bold text-zinc-900">项目资产与架构寻址管理</h2>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v16.0 协同感知与智能瘦身版</span>
             </div>
-            <p class="text-xs text-zinc-500 mt-0.5">修改代码时受防破坏铁律严格保护，图谱关键词与网页数据全自动同步。</p>
+            <p class="text-xs text-zinc-500 mt-0.5">自动绑定 HTML/JS/CSS 协同送达，支持一键对超大文件进行智能解耦拆分。</p>
           </div>
-          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.15</span>
+          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.16</span>
         </div>
 
         <!-- 顶置三大卡片 -->
@@ -257,14 +257,14 @@
           </button>
         </div>
 
-        <!-- 架构寻址图谱 -->
+        <!-- 架构寻址图谱 (支持智能提取关键词 + 一键瘦身拆分) -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center">
             <div>
               <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
                 <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
               </h3>
-              <p class="text-[11px] text-zinc-400 mt-0.5">点击每个文件旁的【✨ 智能提取关键词】，可为现有文件补充丰富检索词！</p>
+              <p class="text-[11px] text-zinc-400 mt-0.5">可提取关键词，或点击【✂️ 智能瘦身拆分】让 AI 自动将超大文件解耦拆分成多个小文件！</p>
             </div>
             <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0">0 个文件 · 0 行代码</span>
           </div>
@@ -312,6 +312,35 @@
   </nav>
 
   <!-- ==================== 4. 模态弹窗区 ==================== -->
+
+  <!-- 🌟 专属弹窗 1：一键智能文件瘦身拆分确认弹窗 -->
+  <div id="slimConfirmModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center space-x-2.5 border-b border-zinc-100 pb-3">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">✂️</div>
+        <div>
+          <h4 class="text-sm font-bold text-zinc-900">智能文件解耦与瘦身拆分</h4>
+          <p id="slimModalTargetLabel" class="text-xs text-amber-700 font-mono font-semibold">index.html (1183 行代码)</p>
+        </div>
+      </div>
+
+      <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-xs text-amber-900 leading-relaxed space-y-1.5">
+        <p class="font-semibold">💡 AI 将执行以下自动化瘦身解耦操作：</p>
+        <ul class="list-disc list-inside space-y-1 text-[11px] text-amber-800">
+          <li>分析该文件内的所有大型业务模块、弹窗与抽屉面板；</li>
+          <li>将各子模块抽离封装为独立的组件文件（如 <code>js/xxx.js</code>、<code>css/xxx.css</code>）；</li>
+          <li>大幅精简当前文件本身，并自动为每个新拆出的文件配置图谱关键词！</li>
+        </ul>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-1">
+        <button onclick="closeSlimModal()" class="px-4 py-2 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition">取消</button>
+        <button onclick="executeSlimFile()" class="px-4 py-2 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-semibold transition shadow-sm">
+          🚀 确认开始智能拆分瘦身
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 单文件智能关键词提取与编辑弹窗 -->
   <div id="keywordEditModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
@@ -384,7 +413,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_V15_SURGICAL';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_TRIAD_V16';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图 (含检索关键词)
@@ -397,22 +426,33 @@
     let sandboxStorage = {};        // 网页内部真实产生的 localStorage 数据
     let lastSnapshotState = null;   // 单步回滚备份
     let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
+    let currentSlimmingFile = null; // 当前正在瘦身的目标文件
 
-    // 🌟 强力固化防破坏铁律的 System Prompt
+    // 🌟 强力固化防破坏铁律 + Scoped CSS + 协同感知 System Prompt
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【🚨 最高优先级铁律 - 严格微创手术与防破坏守则 🚨】：
-1. 【禁止擅自重构与改动 UI】：你本次修改的目标极为单一！严禁“自作聪明”去美化、重写、精简任何用户没有明确要求改动的页面 UI、颜色、布局与已有功能！
-2. 【已有代码 1:1 绝对继承】：必须仔细比对 <target_file> 中的现有源码，未涉及修改的函数、变量、CSS 样式类必须 100% 原样保留，绝不允许漏掉任何一行已有逻辑！
-3. 【禁止破坏点击响应】：
-   - 严禁使用覆盖父容器 innerHTML 的方式插入新元素（这会导致已有按钮的点击事件监听全部失效）！
-   - 必须确保所有弹窗、蒙版在关闭/隐藏状态下绝对不会阻挡底层页面的点击（严禁出现隐形透明层遮挡按钮的 bug）！
-4. 【纯本地单页 SPA 规范】：页面切换、设置弹窗必须在单页内通过 DOM 显隐切换或弹窗组件实现，严禁生成会触发向外跳页的 <a> 链接！
-5. 【必须多文件模块化拆分】：严禁单文件大杂烩，积极合理拆分文件。
-6. 【主动清理旧文件】：若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
-7. 【架构认知图谱】：在每次输出末尾必须为本次修改的文件更新包含详细【检索关键词】的 <project_map>。
-8. 标签外用简明专业的中文说明改动点与实现细节。`;
+【🚨 核心铁律 1 - Scoped CSS 命名空间隔离守则 🚨】：
+1. 绝对禁止编写全局无命名空间的标签选择器（如 span, div, p, .card, .item 等）！
+2. 所有 CSS 规则必须以模块的顶级专属 ID 或类名为前缀（例如 \`#persona-modal .card\`, \`#chat-room .bubble\`, \`#settings-drawer .btn\`），或者使用 Tailwind CSS 局部原子类，彻底杜绝跨文件、跨组件样式污染！
+
+【🚨 核心铁律 2 - 全链路协同与微创手术守则 🚨】：
+1. 系统已为你提供了【相关目标文件的 HTML+JS+CSS 源码三件套】(<target_file>)。
+2. 你在修改 JS 业务逻辑时，必须严格对照对应的 HTML 结构和 CSS 类名，保持三者命名 100% 契合统一，绝不能凭空脑补类名！
+3. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！
+4. 严禁使用覆盖父容器 innerHTML 的方式注入元素，防止破坏已有按钮的事件监听！
+5. 确保弹窗与遮罩层在隐藏时不会产生隐形透明膜阻挡底层页面点击！
+
+【核心原则 3 - 多文件模块化拆分与关键词规范】：
+1. 严禁单文件大杂烩，积极主动地进行模块化拆分。
+2. 每次输出末尾必须为本次修改或新建的文件更新包含详细【检索关键词】的 <project_map>：
+<project_map>
+{
+  "文件完整路径": "【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】更新后的最新完整职责说明"
+}
+</project_map>
+3. 若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
+4. 标签外用简明专业的中文说明改动点与实现细节。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -584,18 +624,18 @@
     }
 
     // ==========================================
-    // 阶段 1：AI 架构师深度分析与文件决策 Agent
+    // 🌟 阶段 1：AI 架构师深度分析 + 全链路依赖自动扩展
     // ==========================================
     async function planTargetFilesWithAI(userPrompt, baseUrl, apiKey, model) {
       const allFileKeys = Object.keys(virtualFiles);
       if (allFileKeys.length <= 2) {
-        return { target_files: allFileKeys, reason: "项目规模小，直接加载全部文件" };
+        return { target_files: allFileKeys, reason: "项目规模小，直接全链路协同加载" };
       }
 
       const mapStr = JSON.stringify(projectMap, null, 2);
 
       const plannerSystemPrompt = `你是一个顶级前端架构师。
-你的任务是：根据用户的修改需求，仔细比对【项目架构全局功能图谱与关键词】，准确决策出本次修改必须涉及的 1~3 个目标文件。
+你的任务是：根据用户的修改需求，仔细比对【项目架构全局功能图谱与关键词】，决策出本次修改必须涉及的核心目标文件。
 你必须严格以 JSON 格式输出，不要包含任何多余文字或 Markdown 代码块：
 {
   "target_files": ["需要修改或参考的文件路径1", "文件路径2"],
@@ -603,6 +643,9 @@
 }`;
 
       const plannerUserPrompt = `【项目架构全局功能图谱与检索关键词】：\n${mapStr}\n\n【用户提出的修改需求】：${userPrompt}\n请严格输出决策 JSON。`;
+
+      let selectedTargets = [];
+      let decisionReason = "AI 架构师已命中目标";
 
       try {
         const res = await fetch(`${baseUrl}/chat/completions`, {
@@ -618,30 +661,46 @@
           })
         });
 
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        let content = data.choices[0].message.content.trim();
-        content = content.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-        const parsed = JSON.parse(content);
+        if (res.ok) {
+          const data = await res.json();
+          let content = data.choices[0].message.content.trim();
+          content = content.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+          const parsed = JSON.parse(content);
 
-        if (Array.isArray(parsed.target_files) && parsed.target_files.length > 0) {
-          const valid = parsed.target_files.filter(f => virtualFiles[f]);
-          if (valid.length > 0) {
-            return { target_files: valid, reason: parsed.reason || "AI 架构师已命中目标" };
+          if (Array.isArray(parsed.target_files) && parsed.target_files.length > 0) {
+            selectedTargets = parsed.target_files.filter(f => virtualFiles[f]);
+            decisionReason = parsed.reason || decisionReason;
           }
         }
       } catch (err) {
         console.warn('AI 架构师决策回退:', err);
       }
 
-      return { 
-        target_files: ['index.html', allFileKeys.find(f => f.endsWith('.js')), allFileKeys.find(f => f.endsWith('.css'))].filter(Boolean),
-        reason: "根据基础入口模块进行后备加载" 
+      if (selectedTargets.length === 0) {
+        selectedTargets = ['index.html', allFileKeys.find(f => f.endsWith('.js')), allFileKeys.find(f => f.endsWith('.css'))].filter(Boolean);
+      }
+
+      // 🌟 核心突破：全链路协同扩展！自动把 JS 关联的 CSS、以及入口 HTML 一同绑定送达
+      const expandedTargets = new Set(selectedTargets);
+      selectedTargets.forEach(path => {
+        const baseName = path.split('/').pop().split('.')[0];
+        // 1. 如果选中了 js/xxx.js，自动寻找并加入对应的 css/xxx.css
+        const relatedCss = allFileKeys.find(f => f.endsWith('.css') && f.includes(baseName));
+        if (relatedCss) expandedTargets.add(relatedCss);
+
+        // 2. 如果选中了 css/xxx.css，自动寻找并加入对应的 js/xxx.js
+        const relatedJs = allFileKeys.find(f => f.endsWith('.js') && f.includes(baseName));
+        if (relatedJs) expandedTargets.add(relatedJs);
+      });
+
+      return {
+        target_files: Array.from(expandedTargets).slice(0, 5),
+        reason: decisionReason + " (已自动完成 HTML/JS/CSS 全链路协同绑定)"
       };
     }
 
     // ==========================================
-    // 🌟 后台自动自愈补齐被改动文件的关键词
+    // 后台自动自愈补齐被改动文件的关键词
     // ==========================================
     async function autoRefreshKeywordsForFiles(filePaths, baseUrl, apiKey, model) {
       for (const filePath of filePaths) {
@@ -732,8 +791,8 @@ ${code}
       persistAllData();
       updateRollbackUI();
 
-      // 🌟 第一阶段：AI 架构师深度分析与文件决策
-      setLoading(true, `🧠 AI 架构师正在分析需求并研读图谱决策文件...`);
+      // 🌟 第一阶段：AI 架构师深度分析与全链路协同决策
+      setLoading(true, `🧠 AI 架构师正在分析需求并协同检索 HTML+JS+CSS...`);
       
       let decision = { target_files: [], reason: "" };
       if (Object.keys(virtualFiles).length > 0) {
@@ -741,10 +800,10 @@ ${code}
       }
 
       const targetNotice = decision.target_files.length > 0 
-        ? `🎯 锁定 ${decision.target_files.length} 个文件 (${decision.target_files.join(', ')})` 
+        ? `🎯 锁定协同文件: ${decision.target_files.join(', ')}` 
         : `正在从零创建项目`;
 
-      // 🌟 第二阶段：定向编写与增量手术
+      // 🌟 第二阶段：协同定向编写与微创手术
       setLoading(true, `正在微创编码: ${targetNotice}...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
@@ -753,7 +812,7 @@ ${code}
 
       let targetedFilesPayload = "";
       if (decision.target_files.length > 0) {
-        targetedFilesPayload = `【AI 架构师已精准决策锁定以下目标文件源码（基于分析：${decision.reason}，其余未变动文件已排除加载以节省消耗，请严格基于此增量修改）：】\n`;
+        targetedFilesPayload = `【AI 架构师已精准决策锁定以下相关联的 HTML/JS/CSS 协同源码（分析结论：${decision.reason}，请严格对照三者结构进行增量修改）：】\n`;
         decision.target_files.forEach(tp => {
           if (virtualFiles[tp]) {
             targetedFilesPayload += `<target_file path="${tp}">\n${virtualFiles[tp]}\n</target_file>\n\n`;
@@ -775,7 +834,7 @@ ${code}
         }
       });
 
-      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须受防破坏铁律严格约束！完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
+      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -829,7 +888,7 @@ ${code}
           showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 代码已微创更新 (${updated.join(', ')})！`);
+          showToast(`✨ 代码已协同更新 (${updated.join(', ')})！`);
 
           const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
           if (unmappedFiles.length > 0) {
@@ -850,6 +909,51 @@ ${code}
       } finally {
         setLoading(false);
       }
+    }
+
+    // ==========================================
+    // 🌟 一键智能文件瘦身与自动拆分逻辑
+    // ==========================================
+    function triggerSlimFile(filePath) {
+      const code = virtualFiles[filePath];
+      if (!code) {
+        showToast('该文件暂无源码内容');
+        return;
+      }
+
+      currentSlimmingFile = filePath;
+      const lines = code.split('\n').length;
+      document.getElementById('slimModalTargetLabel').innerText = `${filePath} (${lines} 行代码)`;
+
+      const modal = document.getElementById('slimConfirmModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSlimModal() {
+      const modal = document.getElementById('slimConfirmModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      currentSlimmingFile = null;
+    }
+
+    function executeSlimFile() {
+      if (!currentSlimmingFile) return;
+      const target = currentSlimmingFile;
+      closeSlimModal();
+
+      // 切换到制作页面
+      switchBottomTab('maker');
+
+      // 自动组装专属瘦身指令并触发
+      const slimPrompt = `【专项重构任务：对超大文件 ${target} 进行智能瘦身与模块化拆分解耦】
+请深度研读 ${target} 的源码，将其内部各个独立的业务模块/弹窗/抽屉（如身份档案、设置中心、聊天室、朋友圈动态等）彻底抽离封装为独立的组件文件（如 \`js/components/xxx.js\`、\`css/xxx.css\`、\`data/xxx.json\`）：
+1. 大幅精简 ${target} 本身，只保留最核心干净的骨架与主干挂载逻辑。
+2. 确保拆分后的各子模块在单页 SPA 中依然 100% 正常运行，点击事件与样式完美生效！
+3. 为所有新拆分出的文件在 <project_map> 里生成超详细的【检索关键词: xxx, xxx】！`;
+
+      document.getElementById('promptInput').value = slimPrompt;
+      sendMessage();
     }
 
     // ==========================================
@@ -1052,7 +1156,7 @@ ${code}
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "15.0",
+        version: "16.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -1202,7 +1306,7 @@ ${code}
     }
 
     // ==========================================
-    // 寻址图谱渲染与解析
+    // 寻址图谱渲染 (支持智能提取关键词 + 一键瘦身拆分)
     // ==========================================
     function parseProjectMapFromOutput(text) {
       const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
@@ -1229,7 +1333,7 @@ ${code}
       const allPaths = Array.from(new Set([...Object.keys(virtualFiles), ...Object.keys(projectMap)]));
       
       if (allPaths.length === 0) {
-        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件、代码行数与检索关键词。</div>';
+        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-2">暂无数据，AI 生成项目后将在此展示文件与关键词提取功能。</div>';
         if (totalBadge) totalBadge.innerText = '0 个文件 · 0 行代码';
         return;
       }
@@ -1252,19 +1356,31 @@ ${code}
           cleanDesc = rawDesc.replace(/【检索关键词[:：][^】]+】/i, '').trim();
         }
 
+        // 大文件显示明显标记 (>150 行)
+        const isBloated = lines >= 150;
+
         return `
-          <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 flex flex-col gap-2 text-xs">
+          <div class="bg-zinc-50 border ${isBloated ? 'border-amber-200/90 bg-amber-50/20' : 'border-zinc-200'} rounded-xl p-3 flex flex-col gap-2 text-xs">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center space-x-2 truncate">
                 <span class="font-mono font-bold text-zinc-900 bg-white px-2 py-0.5 rounded border border-zinc-200 ${isDeleted ? 'line-through opacity-50' : ''}">${escapeHtml(path)}</span>
-                <span class="text-[10px] font-mono text-zinc-500 bg-zinc-200/70 px-1.5 py-0.5 rounded font-medium">${lines} 行</span>
+                <span class="text-[10px] font-mono ${isBloated ? 'text-amber-700 bg-amber-100 font-bold' : 'text-zinc-500 bg-zinc-200/70'} px-1.5 py-0.5 rounded">${lines} 行</span>
               </div>
               
-              ${!isDeleted ? `
-                <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 shrink-0 shadow-2xs">
-                  <span>✨ 智能提取关键词</span>
-                </button>
-              ` : ''}
+              <!-- 按钮区：瘦身拆分 + 提取关键词 -->
+              <div class="flex items-center space-x-1.5 shrink-0">
+                ${!isDeleted && isBloated ? `
+                  <button onclick="triggerSlimFile('${escapeHtml(path)}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[11px] font-bold transition flex items-center space-x-0.5 shadow-2xs" title="将此大文件拆分成多个小组件文件">
+                    <span>✂️ 智能瘦身拆分</span>
+                  </button>
+                ` : ''}
+
+                ${!isDeleted ? `
+                  <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 shadow-2xs">
+                    <span>✨ 智能提取关键词</span>
+                  </button>
+                ` : ''}
+              </div>
             </div>
 
             ${keywordsBadge ? `<div class="mt-0.5">${keywordsBadge}</div>` : ''}
@@ -1286,7 +1402,7 @@ ${code}
       if (chatHistory.length === 0) {
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 微创防破坏工作坊 (v15.0)</div>
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 协同感知与模块化工作坊 (v16.0)</div>
             <p>输入你的需求，或点 ➕ 上传参考图与已有代码文件。</p>
           </div>
         `;
