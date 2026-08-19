@@ -158,18 +158,18 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Base URL</label>
-              <input id="apiBaseUrl" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
+              <input id="apiBaseUrl" oninput="apiConfig.baseUrl = this.value.trim()" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
             </div>
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Key</label>
-              <input id="apiKey" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
+              <input id="apiKey" oninput="apiConfig.apiKey = this.value.trim()" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
             </div>
           </div>
 
           <div class="pt-2 border-t border-zinc-100">
             <label class="text-xs font-medium text-zinc-700 block mb-1">使用模型名称 (Model Name)</label>
             <div class="flex space-x-2">
-              <input id="customModelInput" type="text" placeholder="推荐: claude-3-5-sonnet, gpt-4o 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
+              <input id="customModelInput" oninput="apiConfig.model = this.value.trim(); selectedModel = this.value.trim();" type="text" placeholder="推荐: claude-3-5-sonnet, gpt-4o 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
               <button onclick="saveApiSettings()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
                 保存并生效
               </button>
@@ -203,7 +203,7 @@
           <div>
             <div class="flex items-center space-x-2">
               <h2 class="text-base font-bold text-zinc-900">项目资产与显微镜级档案管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.7 全量通畅版</span>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.8 完整全同步版</span>
             </div>
             <p class="text-xs text-zinc-500 mt-0.5">每个文件包含的所有元素、函数、交互细节全景记录。</p>
           </div>
@@ -224,7 +224,7 @@
               <div class="text-xs font-bold">导入全量 JSON 备份</div>
               <div class="text-[10px] text-zinc-400">选择 .json 文件完整还原所有配置</div>
             </div>
-            <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
+            <input type="file" id="jsonFileInput" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
 
           <button onclick="exportZip()" class="p-4 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
@@ -352,7 +352,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_7';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_8';
 
     let virtualFiles = {};
     let projectMap = {};
@@ -367,6 +367,13 @@
     let currentEditingFile = null;
     let currentSlimmingFile = null;
     let currentPreviewPage = 'index.html';
+    
+    // 🌟 全局独立 API 响应式配置中心
+    let apiConfig = {
+      baseUrl: '',
+      apiKey: '',
+      model: ''
+    };
 
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师。你负责为完全不懂代码的用户迭代一个多文件纯前端 Web 工程。
 
@@ -388,6 +395,7 @@
       window.addEventListener('message', handleIframeMessage);
       window.addEventListener('resize', handleWindowResize);
       refreshUIElements();
+      refreshApiUI();
     });
 
     function switchBottomTab(tabKey) {
@@ -405,8 +413,21 @@
       document.getElementById(`nav-${tabKey}-text`).className = "text-[11px] font-bold mt-0.5";
 
       if (tabKey === 'preview') { refreshPreview(); setTimeout(() => setDeviceViewport(), 40); }
-      if (tabKey === 'api') renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
-      if (tabKey === 'settings') renderProjectMapUI();
+      if (tabKey === 'api') { refreshApiUI(); }
+      if (tabKey === 'settings') { renderProjectMapUI(); }
+    }
+
+    // 🌟 强行同步 API 状态到输入框和列表
+    function refreshApiUI() {
+      const urlInput = document.getElementById('apiBaseUrl');
+      const keyInput = document.getElementById('apiKey');
+      const modelInput = document.getElementById('customModelInput');
+      
+      if (urlInput) urlInput.value = apiConfig.baseUrl || '';
+      if (keyInput) keyInput.value = apiConfig.apiKey || '';
+      if (modelInput) modelInput.value = apiConfig.model || selectedModel || '';
+      
+      renderModelsGrid(document.getElementById('modelSearchInput') ? document.getElementById('modelSearchInput').value.trim() : '');
     }
 
     function setDeviceViewport(mode) {
@@ -493,9 +514,9 @@
       const allFiles = Object.keys(virtualFiles);
       if (allFiles.length === 0) return showToast('当前项目还没有任何文件');
 
-      const apiKey = document.getElementById('apiKey').value.trim();
-      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
-      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+      const apiKey = apiConfig.apiKey || document.getElementById('apiKey').value.trim();
+      let baseUrl = apiConfig.baseUrl || document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || apiConfig.model || document.getElementById('customModelInput').value.trim();
 
       if (!baseUrl || !apiKey || !model) {
         showToast('请先配置 API 参数');
@@ -643,9 +664,9 @@
       const prompt = input.value.trim();
       if (!prompt && pendingAttachments.length === 0) return;
 
-      const apiKey = document.getElementById('apiKey').value.trim();
-      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
-      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+      const apiKey = apiConfig.apiKey || document.getElementById('apiKey').value.trim();
+      let baseUrl = apiConfig.baseUrl || document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || apiConfig.model || document.getElementById('customModelInput').value.trim();
 
       if (!baseUrl || !apiKey || !model) {
         showToast('请先配置 API 参数');
@@ -811,9 +832,9 @@
       const code = virtualFiles[filePath];
       if (!code) return showToast('暂无源码');
 
-      const apiKey = document.getElementById('apiKey').value.trim();
-      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
-      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+      const apiKey = apiConfig.apiKey || document.getElementById('apiKey').value.trim();
+      let baseUrl = apiConfig.baseUrl || document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || apiConfig.model || document.getElementById('customModelInput').value.trim();
 
       if (!baseUrl || !apiKey || !model) { showToast('请先配置 API 参数'); switchBottomTab('api'); return; }
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
@@ -969,30 +990,33 @@
     }
 
     // ==========================================
-    // 🌟 全量备份与恢复引擎（包含代码、图谱、历史与完整的 API 配置）
+    // 🌟 全量备份与恢复引擎（绝对保障 API 配置 100% 存取）
     // ==========================================
     function exportProjectJson() {
-      const apiConfig = {
-        baseUrl: document.getElementById('apiBaseUrl').value.trim(),
-        apiKey: document.getElementById('apiKey').value.trim(),
-        model: selectedModel || document.getElementById('customModelInput').value.trim()
-      };
+      // 保证 apiConfig 与当前输入框内容实时同步
+      const urlInput = document.getElementById('apiBaseUrl');
+      const keyInput = document.getElementById('apiKey');
+      const modelInput = document.getElementById('customModelInput');
+
+      apiConfig.baseUrl = (urlInput ? urlInput.value.trim() : '') || apiConfig.baseUrl || '';
+      apiConfig.apiKey = (keyInput ? keyInput.value.trim() : '') || apiConfig.apiKey || '';
+      apiConfig.model = selectedModel || (modelInput ? modelInput.value.trim() : '') || apiConfig.model || '';
 
       const payload = {
         app: "AI_WEB_STUDIO_MICROSCOPIC",
-        version: "18.7",
+        version: "18.8",
         virtualFiles,
         projectMap,
         chatHistory,
         sandboxStorage,
         remoteModels,
         selectedModel: apiConfig.model,
-        apiConfig
+        apiConfig: { ...apiConfig }
       };
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       saveAs(blob, `ai-studio-backup-${Date.now()}.json`);
-      showToast('🎉 导出成功（含 API 配置）！');
+      showToast('🎉 导出成功（已完整包含 API Key 及配置）！');
     }
 
     function importProjectJson(e) {
@@ -1002,20 +1026,22 @@
       reader.onload = (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
-          if (data.virtualFiles) {
+          if (data.virtualFiles || data.apiConfig) {
             virtualFiles = data.virtualFiles || {};
             projectMap = data.projectMap || {};
             chatHistory = data.chatHistory || [];
             remoteModels = data.remoteModels || [];
             sandboxStorage = data.sandboxStorage || {};
-            selectedModel = data.selectedModel || (data.apiConfig ? data.apiConfig.model : '') || '';
             
-            // 自动还原 API 输入框
-            if (data.apiConfig) {
-              document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
-              document.getElementById('apiKey').value = data.apiConfig.apiKey || '';
-              document.getElementById('customModelInput').value = data.apiConfig.model || selectedModel || '';
-            }
+            // 🌟 1. 彻底恢复 API 状态
+            const importedApi = data.apiConfig || {};
+            apiConfig.baseUrl = importedApi.baseUrl || data.apiBaseUrl || '';
+            apiConfig.apiKey = importedApi.apiKey || data.apiKey || '';
+            apiConfig.model = importedApi.model || data.selectedModel || data.model || '';
+            selectedModel = apiConfig.model;
+
+            // 🌟 2. 强行同步至所有输入框和列表
+            refreshApiUI();
 
             lastSnapshotState = null;
             renderChatMessages(); 
@@ -1023,25 +1049,41 @@
             refreshUIElements(); 
             persistAllData(); 
             updateRollbackUI();
-            showToast('🎉 全量数据与 API 设置已完整恢复！'); 
-            switchBottomTab('preview');
+            
+            // 清空文件选择框，允许连续重新导入
+            document.getElementById('jsonFileInput').value = '';
+
+            showToast('🎉 全量数据、API 配置与所选模型已 100% 完整还原！'); 
+            switchBottomTab('api'); // 自动跳转至 API 面板呈现数据
           }
-        } catch (err) { alert('导入失败'); }
+        } catch (err) { alert('导入失败：' + err.message); }
       };
       reader.readAsText(file);
     }
 
     function saveApiSettings() {
-      const customModel = document.getElementById('customModelInput').value.trim();
-      if (customModel) selectedModel = customModel;
-      persistAllData(true); refreshUIElements(); showToast('API 设置已生效！');
+      const urlInput = document.getElementById('apiBaseUrl');
+      const keyInput = document.getElementById('apiKey');
+      const modelInput = document.getElementById('customModelInput');
+
+      if (urlInput) apiConfig.baseUrl = urlInput.value.trim();
+      if (keyInput) apiConfig.apiKey = keyInput.value.trim();
+      if (modelInput && modelInput.value.trim()) {
+        apiConfig.model = modelInput.value.trim();
+        selectedModel = modelInput.value.trim();
+      }
+
+      persistAllData(true);
+      refreshApiUI();
+      refreshUIElements();
+      showToast('API 设置已生效并永久保存！');
     }
 
     async function fetchRemoteModels() {
-      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
-      const apiKey = document.getElementById('apiKey').value.trim();
+      let baseUrl = apiConfig.baseUrl || document.getElementById('apiBaseUrl').value.trim();
+      const apiKey = apiConfig.apiKey || document.getElementById('apiKey').value.trim();
       const btn = document.getElementById('fetchModelsBtn');
-      if (!baseUrl || !apiKey) return showToast('请先输入配置');
+      if (!baseUrl || !apiKey) return showToast('请先输入 Base URL 与 API Key');
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
       if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
       btn.disabled = true; btn.innerText = '拉取中...';
@@ -1050,26 +1092,45 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         let list = Array.isArray(data.data) ? data.data.map(m => m.id) : (Array.isArray(data.models) ? data.models.map(m => m.name || m.id) : []);
-        if (list.length > 0) { remoteModels = Array.from(new Set(list)); showToast(`🎉 成功拉取 ${list.length} 个模型！`); renderModelsGrid(); persistAllData(); }
+        if (list.length > 0) { 
+          remoteModels = Array.from(new Set(list)); 
+          showToast(`🎉 成功拉取 ${list.length} 个模型！`); 
+          renderModelsGrid(); 
+          persistAllData(); 
+        }
       } catch (err) { showToast(`❌ 拉取失败: ${err.message}`); }
       finally { btn.disabled = false; btn.innerText = '🔄 拉取中转站模型列表'; }
     }
 
     function renderModelsGrid(filterText = '') {
       const grid = document.getElementById('modelsGrid');
+      if (!grid) return;
       const filtered = remoteModels.filter(m => m.toLowerCase().includes(filterText.toLowerCase()));
-      document.getElementById('modelCountLabel').innerText = filtered.length;
+      const countLabel = document.getElementById('modelCountLabel');
+      if (countLabel) countLabel.innerText = filtered.length;
       if (filtered.length === 0) { grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">暂无匹配模型</div>'; return; }
+      
+      const currentActive = selectedModel || apiConfig.model;
       grid.innerHTML = filtered.map(m => `
-        <div onclick="selectModel('${m}')" class="p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${selectedModel === m ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200'}">
+        <div onclick="selectModel('${m}')" class="p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${currentActive === m ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200'}">
           <span class="font-mono font-bold text-xs truncate">${escapeHtml(m)}</span>
-          ${selectedModel === m ? '<span class="text-xs text-emerald-400">✓</span>' : ''}
+          ${currentActive === m ? '<span class="text-xs text-emerald-400 font-bold">✓</span>' : ''}
         </div>
       `).join('');
     }
 
     function filterModels() { renderModelsGrid(document.getElementById('modelSearchInput').value.trim()); }
-    function selectModel(m) { selectedModel = m; document.getElementById('customModelInput').value = m; refreshUIElements(); renderModelsGrid(document.getElementById('modelSearchInput').value.trim()); showToast(`已选: ${m}`); persistAllData(); }
+    
+    function selectModel(m) { 
+      selectedModel = m; 
+      apiConfig.model = m;
+      const mInput = document.getElementById('customModelInput');
+      if (mInput) mInput.value = m;
+      refreshUIElements(); 
+      renderModelsGrid(document.getElementById('modelSearchInput') ? document.getElementById('modelSearchInput').value.trim() : ''); 
+      showToast(`已选中模型: ${m}`); 
+      persistAllData(); 
+    }
 
     function renderChatMessages() {
       const box = document.getElementById('chatMessages');
@@ -1141,9 +1202,6 @@
 
     function clearChatHistory() { if (confirm('确认清空对话？')) { chatHistory = []; renderChatMessages(); persistAllData(); } }
 
-    // ==========================================
-    // 🌟 DOM 级别绝对精准的虚拟工程打包器（防止 settings.js 误伤 chat-settings.js）
-    // ==========================================
     function refreshPreview(targetPage) {
       if (targetPage && virtualFiles[targetPage]) {
         currentPreviewPage = targetPage;
@@ -1304,8 +1362,32 @@
     }
 
     function persistAllData(showNotif = false) {
-      const payload = { virtualFiles, projectMap, chatHistory, sandboxStorage, remoteModels, selectedModel, apiConfig: { baseUrl: document.getElementById('apiBaseUrl').value.trim(), apiKey: document.getElementById('apiKey').value.trim(), model: selectedModel } };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); if (showNotif) showToast('💾 保存成功！'); } catch (e) { if (showNotif) showToast('❌ 保存失败'); }
+      const urlInput = document.getElementById('apiBaseUrl');
+      const keyInput = document.getElementById('apiKey');
+      const modelInput = document.getElementById('customModelInput');
+
+      if (urlInput && urlInput.value.trim()) apiConfig.baseUrl = urlInput.value.trim();
+      if (keyInput && keyInput.value.trim()) apiConfig.apiKey = keyInput.value.trim();
+      if (modelInput && modelInput.value.trim()) {
+        apiConfig.model = modelInput.value.trim();
+        selectedModel = modelInput.value.trim();
+      }
+
+      const payload = { 
+        virtualFiles, 
+        projectMap, 
+        chatHistory, 
+        sandboxStorage, 
+        remoteModels, 
+        selectedModel: apiConfig.model || selectedModel, 
+        apiConfig: { ...apiConfig } 
+      };
+      try { 
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); 
+        if (showNotif) showToast('💾 保存成功！'); 
+      } catch (e) { 
+        if (showNotif) showToast('❌ 保存失败'); 
+      }
     }
 
     function loadStateFromStorage() {
@@ -1313,9 +1395,25 @@
       if (!raw) return;
       try {
         const s = JSON.parse(raw);
-        virtualFiles = s.virtualFiles || {}; projectMap = s.projectMap || {}; chatHistory = s.chatHistory || []; remoteModels = s.remoteModels || []; selectedModel = s.selectedModel || ''; sandboxStorage = s.sandboxStorage || {};
-        if (s.apiConfig) { document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || ''; document.getElementById('apiKey').value = s.apiConfig.apiKey || ''; document.getElementById('customModelInput').value = s.apiConfig.model || ''; selectedModel = s.apiConfig.model || ''; }
-        renderChatMessages(); refreshPreview(); refreshUIElements(); updateRollbackUI();
+        virtualFiles = s.virtualFiles || {}; 
+        projectMap = s.projectMap || {}; 
+        chatHistory = s.chatHistory || []; 
+        remoteModels = s.remoteModels || []; 
+        sandboxStorage = s.sandboxStorage || {};
+        
+        if (s.apiConfig) {
+          apiConfig = { ...s.apiConfig };
+          selectedModel = apiConfig.model || '';
+        } else if (s.selectedModel) {
+          selectedModel = s.selectedModel;
+          apiConfig.model = s.selectedModel;
+        }
+
+        renderChatMessages(); 
+        refreshPreview(); 
+        refreshUIElements(); 
+        refreshApiUI();
+        updateRollbackUI();
       } catch (e) {}
     }
 
