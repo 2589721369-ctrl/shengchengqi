@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 视觉审查拾取版</title>
+  <title>AI Web Studio - 纯文本精准寻址版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -37,7 +37,6 @@
       <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0模块</span>
     </div>
 
-    <!-- 右侧保存按钮 -->
     <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
       <span>💾 保存</span>
     </button>
@@ -50,8 +49,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🔍 视觉拾取诊断已联动:</span>
-          <span class="truncate">在预览点击坏元素，直接带现场证据来修。</span>
+          <span class="text-indigo-600 font-semibold">🤖 纯文本语义精准寻址:</span>
+          <span class="truncate">提问时带上模块名、特征文本或 Class，AI 自动定位文件。</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -64,8 +63,8 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 视觉审查与精准修复工作坊 (v18.0)</div>
-          <p>遇到<b>按钮点不开</b>或<b>排版混乱</b>？切到底部【预览HTML】，点击顶部的 <b>【🔍 拾取审查元素】</b> 并点选坏掉的部件，系统会自动抓取真实 DOM 与图层证据直接发给 AI 修复！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 纯文本精准寻址架构工作坊</div>
+          <p>为了让 AI 精准找到代码，请在提问时提供<b>硬核路标</b>。<br>✅ <b>正确示范：</b>“在【用户设置弹窗】里，找到带有 `.submit-btn` 的按钮，改成红色。”</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
@@ -78,24 +77,15 @@
         <span id="stepProgressText" class="truncate font-medium">AI 正在深度思考分析...</span>
       </div>
 
-      <!-- 输入栏 (含 ➕ 上传区与 🔍 拾取证据卡片) -->
+      <!-- 输入栏 -->
       <div class="p-3 border-t border-zinc-200 bg-white shrink-0">
         <div class="max-w-3xl mx-auto border border-zinc-300 rounded-2xl focus-within:border-zinc-900 transition bg-white shadow-sm overflow-hidden">
           
-          <!-- 🌟 视觉拾取元素诊断卡片 (从预览中抓取后展示) -->
-          <div id="inspectorBadgeContainer" class="hidden px-3 pt-2.5 flex items-center justify-between bg-indigo-50/70 border-b border-indigo-100 text-xs">
-            <div class="flex items-center space-x-2 min-w-0 pr-2">
-              <span class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0">已锁定元素</span>
-              <span id="inspectorBadgeText" class="font-mono text-indigo-900 truncate font-semibold">&lt;button id="btn"&gt;</span>
-            </div>
-            <button onclick="clearInspectorTarget()" class="text-indigo-400 hover:text-red-500 font-bold px-1" title="移除拾取现场证据">✕</button>
-          </div>
-
           <!-- 附件预览行 -->
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="描述你的修改需求，或在预览里点击【🔍 拾取审查元素】直接锁定坏掉的按钮..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="描述你的修改需求，例如：在【用户设置弹窗】里，把【确认】按钮改成红色..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -127,10 +117,6 @@
         </div>
 
         <div class="flex items-center space-x-1.5">
-          <!-- 🌟 视觉审查拾取器开关按钮 -->
-          <button id="toggleInspectorBtn" onclick="toggleInspectorMode()" class="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-xs font-semibold transition flex items-center space-x-1 shadow-2xs">
-            <span>🔍 拾取审查元素</span>
-          </button>
           <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="scaleIndicator">100%</span>
           <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="重新编译刷新">🔄</button>
           <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
@@ -182,7 +168,7 @@
               使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入修改</span>
             </label>
             <div class="flex space-x-2">
-              <input id="customModelInput" type="text" placeholder="例如: gpt-4o, claude-3-5-sonnet, deepseek-chat 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
+              <input id="customModelInput" type="text" placeholder="推荐: claude-3-5-sonnet, gpt-4o 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
               <button onclick="saveApiSettings()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
                 保存并生效
               </button>
@@ -219,11 +205,10 @@
           <div>
             <div class="flex items-center space-x-2">
               <h2 class="text-base font-bold text-zinc-900">项目资产与架构寻址管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.0 视觉审查拾取增强版</span>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.1 精准指纹寻址版</span>
             </div>
-            <p class="text-xs text-zinc-500 mt-0.5">支持画面点击直接抓取故障元素，精准直达底层代码。</p>
+            <p class="text-xs text-zinc-500 mt-0.5">支持纯文本语义通过硬核代码指纹精准直达底层文件。</p>
           </div>
-          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.18</span>
         </div>
 
         <!-- 顶置三大卡片 -->
@@ -275,9 +260,9 @@
           <div class="flex justify-between items-center border-b border-zinc-100 pb-2.5">
             <div>
               <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
-                <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
+                <span>🧠 AI 硬核特征指纹图谱 (Architecture Manifest)</span>
               </h3>
-              <p class="text-[11px] text-zinc-400 mt-0.5">每个文件清晰标明代码行数，支持一键单独提炼关键词或瘦身拆分。</p>
+              <p class="text-[11px] text-zinc-400 mt-0.5">当 AI 寻址错乱时，请点击右下角【提取关键词】更新文件底层指纹。</p>
             </div>
             <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
               0 个文件 · 0 行代码
@@ -344,7 +329,7 @@
         <ul class="list-disc list-inside space-y-1 text-[11px] text-amber-800">
           <li>分析该文件内的所有大型业务模块、弹窗与抽屉面板；</li>
           <li>将各子模块抽离封装为独立的组件文件（如 <code>js/xxx.js</code>、<code>css/xxx.css</code>）；</li>
-          <li>大幅精简当前文件本身，并自动为每个新拆出的文件配置图谱关键词！</li>
+          <li>大幅精简当前文件本身，并自动为每个新拆出的文件配置图谱硬核关键词！</li>
         </ul>
       </div>
 
@@ -363,7 +348,7 @@
       <div class="flex justify-between items-center border-b border-zinc-100 pb-3">
         <div>
           <h4 class="text-sm font-bold text-zinc-900 flex items-center space-x-1.5">
-            <span>✨ 智能文件关键词提炼与定制</span>
+            <span>✨ 智能提取硬特征指纹</span>
           </h4>
           <p id="keywordModalFilePath" class="text-xs text-indigo-600 font-mono mt-0.5 font-semibold">js/app.js</p>
         </div>
@@ -372,21 +357,21 @@
 
       <div id="keywordModalLoading" class="py-8 flex flex-col items-center justify-center space-y-2 text-indigo-600 text-xs">
         <svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span class="animate-pulse font-medium">AI 正在深度研读该文件源码并提炼关键词...</span>
+        <span class="animate-pulse font-medium">AI 正在深度研读源码，提取硬核特征指纹...</span>
       </div>
 
       <div id="keywordModalBody" class="space-y-2 hidden">
         <label class="text-[11px] font-medium text-zinc-600 block">
-          AI 提炼的检索关键词与职责说明（可自由编辑修改）：
+          AI 提炼的检索关键词（包含 ID/Class/中文特征文本）：
         </label>
         <textarea id="keywordEditTextarea" rows="5" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-800 focus:bg-white focus:border-zinc-900 focus:outline-none transition leading-relaxed"></textarea>
-        <p class="text-[10px] text-zinc-400">💡 提示：保留 <code>【检索关键词: xxx, xxx】</code> 格式，关键词越多越具体，后续 AI 找代码越精准！</p>
+        <p class="text-[10px] text-zinc-400">💡 提示：保留 <code>【检索关键词: xxx, xxx】</code> 格式，这些底层代码的指纹越多，AI 找文件越精准！</p>
       </div>
 
       <div class="flex justify-end space-x-2 pt-2 border-t border-zinc-100">
         <button onclick="closeKeywordModal()" class="px-4 py-2 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition">取消更改</button>
         <button id="saveKeywordBtn" onclick="saveCustomKeywords()" class="px-4 py-2 text-xs bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold transition shadow-sm" disabled>
-          💾 保存更改并应用
+          💾 保存指纹并应用
         </button>
       </div>
     </div>
@@ -428,7 +413,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_INSPECTOR_V18';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_ROUTING_V18_1';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图 (含检索关键词)
@@ -442,27 +427,21 @@
     let lastSnapshotState = null;   // 单步回滚备份
     let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
     let currentSlimmingFile = null; // 当前正在瘦身的目标文件
-    
-    // 🌟 视觉审查拾取器状态
-    let isInspectorActive = false;
-    let pickedInspectorElement = null;
 
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【🚨 核心铁律 1 - 视觉审查与故障精准修复准则 🚨】：
-1. 当用户提供了【视觉审查拾取器捕获的故障现场证据】时，你必须以最高优先级修复该指定元素的点击、遮挡或样式 Bug！
-2. 检查该元素是否有事件监听缺失、ID/Class 名拼写错误、或者被隐形蒙版（fixed inset-0 缺少 pointer-events-none）遮挡！
+【🚨 核心铁律 1 - 精准查阅与微创手术守则 🚨】：
+1. 必须仔细研读系统为你提供的 HTML+JS+CSS 协同源码 (<target_file>)。
+2. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！
+3. 纯本地单页 SPA 规范，严禁生成会触发向外跳页的 <a> 链接！
 
 【🚨 核心铁律 2 - Scoped CSS 命名空间隔离守则 🚨】：
 1. 绝对禁止编写全局无命名空间的标签选择器（如 span, div, p, .card, .item 等）！
 2. 所有 CSS 规则必须以模块顶级 ID 为前缀（例如 \`#persona-modal .card\`, \`#chat-room .bubble\`），或者使用 Tailwind CSS 原子类，彻底杜绝跨文件、跨组件样式污染！
 
-【🚨 核心铁律 3 - 全链路协同与微创手术守则 🚨】：
-1. 必须仔细研读系统为你提供的 HTML+JS+CSS 协同源码 (<target_file>)。
-2. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！严禁覆盖父容器 innerHTML 导致事件监听失效！
-3. 纯本地单页 SPA 规范，严禁生成会触发向外跳页的 <a> 链接！
-4. 每次输出末尾必须更新包含详细【检索关键词】的 <project_map>。`;
+【🚨 核心铁律 3 - 索引更新守则 🚨】：
+1. 每次输出末尾必须更新包含详细【硬核特征检索关键词】的 <project_map>，以便后续精准寻址。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -559,33 +538,6 @@
     }
 
     // ==========================================
-    // 🌟 视觉元素审查拾取器核心控制
-    // ==========================================
-    function toggleInspectorMode() {
-      isInspectorActive = !isInspectorActive;
-      const btn = document.getElementById('toggleInspectorBtn');
-      const iframe = document.getElementById('previewFrame');
-
-      if (isInspectorActive) {
-        btn.className = "px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1 shadow-sm animate-pulse";
-        btn.innerHTML = `<span>🎯 点击画面中的元素进行拾取...</span>`;
-        showToast('🔍 拾取模式已开启：请在画面中点击有问题的按钮或组件！');
-      } else {
-        btn.className = "px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-xs font-semibold transition flex items-center space-x-1 shadow-2xs";
-        btn.innerHTML = `<span>🔍 拾取审查元素</span>`;
-      }
-
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ type: 'SET_INSPECTOR_MODE', enabled: isInspectorActive }, '*');
-      }
-    }
-
-    function clearInspectorTarget() {
-      pickedInspectorElement = null;
-      document.getElementById('inspectorBadgeContainer').classList.add('hidden');
-    }
-
-    // ==========================================
     // 附件与上传
     // ==========================================
     function handleAttachmentUpload(event) {
@@ -664,7 +616,7 @@
     }
 
     // ==========================================
-    // 阶段 1：AI 架构师深度分析 + 全链路依赖自动扩展
+    // 阶段 1：AI 架构师深度思考与精准寻址 (CoT)
     // ==========================================
     async function planTargetFilesWithAI(userPrompt, baseUrl, apiKey, model) {
       const allFileKeys = Object.keys(virtualFiles);
@@ -674,18 +626,24 @@
 
       const mapStr = JSON.stringify(projectMap, null, 2);
 
+      // 🌟 核心改进 1：强迫 AI 进行 Chain of Thought 推理
       const plannerSystemPrompt = `你是一个顶级前端架构师。
 你的任务是：根据用户的修改需求，仔细比对【项目架构全局功能图谱与关键词】，决策出本次修改必须涉及的核心目标文件。
-你必须严格以 JSON 格式输出，不要包含任何多余文字或 Markdown 代码块：
+【🚨 寻址铁律】：
+1. 必须先分析用户的需求属于哪个业务模块（如：登录、导航栏、图表等）。
+2. 在图谱中寻找与该业务模块完全对应的文件路径（注意匹配 ID 和 Class）。
+3. 如果涉及样式修改，必须带上对应的 CSS 文件；如果涉及逻辑，必须带上 JS 文件。
+
+请严格以 JSON 格式输出，包含 thinking 和 target_files 两个字段，不要包含其他 Markdown 标记：
 {
-  "target_files": ["需要修改或参考的文件路径1", "文件路径2"],
-  "reason": "简明分析为什么修改这几个文件"
+  "thinking": "用户提到了xxx，我在图谱中看到 yyy 文件负责这个，且涉及样式，所以我还需要 zzz 文件...",
+  "target_files": ["文件路径1", "文件路径2"]
 }`;
 
-      const plannerUserPrompt = `【项目架构全局功能图谱与检索关键词】：\n${mapStr}\n\n【用户提出的修改需求】：${userPrompt}\n请严格输出决策 JSON。`;
+      const plannerUserPrompt = `【项目架构全局图谱与硬核特征检索关键词】：\n${mapStr}\n\n【用户提出的修改需求】：${userPrompt}\n请严格思考并输出决策 JSON。`;
 
       let selectedTargets = [];
-      let decisionReason = "AI 架构师已命中目标";
+      let decisionReason = "AI 架构师基于语义决策锁定";
 
       try {
         const res = await fetch(`${baseUrl}/chat/completions`, {
@@ -709,7 +667,7 @@
 
           if (Array.isArray(parsed.target_files) && parsed.target_files.length > 0) {
             selectedTargets = parsed.target_files.filter(f => virtualFiles[f]);
-            decisionReason = parsed.reason || decisionReason;
+            decisionReason = parsed.thinking || decisionReason;
           }
         }
       } catch (err) {
@@ -720,24 +678,14 @@
         selectedTargets = ['index.html', allFileKeys.find(f => f.endsWith('.js')), allFileKeys.find(f => f.endsWith('.css'))].filter(Boolean);
       }
 
-      const expandedTargets = new Set(selectedTargets);
-      selectedTargets.forEach(path => {
-        const baseName = path.split('/').pop().split('.')[0];
-        const relatedCss = allFileKeys.find(f => f.endsWith('.css') && f.includes(baseName));
-        if (relatedCss) expandedTargets.add(relatedCss);
-
-        const relatedJs = allFileKeys.find(f => f.endsWith('.js') && f.includes(baseName));
-        if (relatedJs) expandedTargets.add(relatedJs);
-      });
-
       return {
-        target_files: Array.from(expandedTargets).slice(0, 5),
-        reason: decisionReason + " (已自动完成全链路协同绑定)"
+        target_files: Array.from(new Set(selectedTargets)).slice(0, 5),
+        reason: decisionReason
       };
     }
 
     // ==========================================
-    // 后台自动自愈补齐被改动文件的关键词
+    // 后台自动自愈补齐被改动文件的硬核指纹
     // ==========================================
     async function autoRefreshKeywordsForFiles(filePaths, baseUrl, apiKey, model) {
       for (const filePath of filePaths) {
@@ -745,9 +693,15 @@
         if (!code) continue;
 
         try {
-          const prompt = `请深度研读以下刚刚被修改的前端文件最新源码，为其提炼出最新的中文【检索关键词】和职责说明（务必包含新增的函数名与UI组件）。
-必须严格按照单行格式输出：
-【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, ...】该文件具体负责的功能、组件与函数逻辑详细说明。
+          // 🌟 核心改进 2：强制要求提取底层指纹 (ID/Class/中文字符)
+          const prompt = `请深度研读以下前端文件的源码，为其提炼出类似于“字典索引”的详尽【检索关键词】。
+为了让后续的 AI 能精准找到该文件，你的关键词必须包含该文件独有的“硬特征”：
+1. 核心的 DOM 元素的 ID 或 Class 名（如 #login-btn, .modal-wrap）。
+2. 核心的 JavaScript 函数名、变量名（如 fetchData(), userState）。
+3. 页面上显示的特殊中文文本内容（如 "点击注册"、"确认提交"）。
+
+必须严格按照单行格式输出，不要其他废话：
+【检索关键词: #id名, .class名, 函数名, 页面中文文本, ...】该文件具体负责的业务逻辑说明。
 
 文件路径：${filePath}
 最新源码如下：
@@ -787,7 +741,7 @@ ${code}
       const input = document.getElementById('promptInput');
       const prompt = input.value.trim();
       
-      if (!prompt && pendingAttachments.length === 0 && !pickedInspectorElement) return;
+      if (!prompt && pendingAttachments.length === 0) return;
 
       const apiKey = document.getElementById('apiKey').value.trim();
       let baseUrl = document.getElementById('apiBaseUrl').value.trim();
@@ -809,9 +763,6 @@ ${code}
       pendingAttachments = [];
       renderAttachmentPreviews();
 
-      const currentInspectorTarget = pickedInspectorElement;
-      clearInspectorTarget();
-
       // 记录单步回滚快照
       lastSnapshotState = {
         files: JSON.parse(JSON.stringify(virtualFiles)),
@@ -822,9 +773,8 @@ ${code}
 
       chatHistory.push({
         role: "user",
-        content: prompt || '（用户锁定了故障元素并请求诊断修复）',
+        content: prompt || '（用户请求诊断修复）',
         attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })),
-        inspectorTarget: currentInspectorTarget ? { tag: currentInspectorTarget.tag, id: currentInspectorTarget.id } : null,
         preState: lastSnapshotState
       });
       renderChatMessages();
@@ -832,12 +782,12 @@ ${code}
       persistAllData();
       updateRollbackUI();
 
-      // 🌟 第一阶段：AI 架构师深度分析
-      setLoading(true, `🧠 AI 架构师正在分析需求并协同检索 HTML+JS+CSS...`);
+      // 🌟 第一阶段：AI 架构师深度思考并精准决策
+      setLoading(true, `🧠 AI 架构师正在思考关联性并锁定底层文件...`);
       
       let decision = { target_files: [], reason: "" };
       if (Object.keys(virtualFiles).length > 0) {
-        decision = await planTargetFilesWithAI(prompt + (currentInspectorTarget ? ` [目标元素: ${currentInspectorTarget.tag}#${currentInspectorTarget.id}]` : ''), baseUrl, apiKey, model);
+        decision = await planTargetFilesWithAI(prompt, baseUrl, apiKey, model);
       }
 
       const targetNotice = decision.target_files.length > 0 
@@ -853,27 +803,12 @@ ${code}
 
       let targetedFilesPayload = "";
       if (decision.target_files.length > 0) {
-        targetedFilesPayload = `【AI 架构师已精准决策锁定以下相关联的 HTML/JS/CSS 协同源码（分析结论：${decision.reason}，请严格对照三者结构进行增量修改）：】\n`;
+        targetedFilesPayload = `【AI 架构师已精准决策锁定以下相关联的源文件（AI推理依据：${decision.reason}，请严格对照进行增量修改）：】\n`;
         decision.target_files.forEach(tp => {
           if (virtualFiles[tp]) {
             targetedFilesPayload += `<target_file path="${tp}">\n${virtualFiles[tp]}\n</target_file>\n\n`;
           }
         });
-      }
-
-      // 🌟 构造视觉拾取证据块
-      let inspectorEvidencePayload = "";
-      if (currentInspectorTarget) {
-        inspectorEvidencePayload = `
-【🔍 视觉审查拾取器捕获的故障现场绝对证据】：
-- 目标标签: <${currentInspectorTarget.tag}${currentInspectorTarget.id ? ' id="' + currentInspectorTarget.id + '"' : ''}${currentInspectorTarget.className ? ' class="' + currentInspectorTarget.className + '"' : ''}>
-- 元素层级路径: ${currentInspectorTarget.path}
-- 关键计算样式: display=${currentInspectorTarget.computed.display}, visibility=${currentInspectorTarget.computed.visibility}, pointerEvents=${currentInspectorTarget.computed.pointerEvents}, zIndex=${currentInspectorTarget.computed.zIndex}, position=${currentInspectorTarget.computed.position}
-- 元素现场代码片段:
-\`\`\`html
-${currentInspectorTarget.outerHTML}
-\`\`\`
-请重点排查：该元素的点击事件是否绑定成功、是否存在上层透明蒙版（fixed inset-0 缺少 pointer-events-none）遮挡导致点不到、或者 ID/Class 命名不一致问题，精准修复！\n\n`;
       }
 
       let attachedCodeContext = '';
@@ -890,7 +825,7 @@ ${currentInspectorTarget.outerHTML}
         }
       });
 
-      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}${inspectorEvidencePayload}${attachedCodeContext}【用户最新修改指令】: ${prompt || '请根据视觉拾取证据修复该元素的所有故障。'}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，并在末尾更新 <project_map>！`;
+      const fullTextPrompt = `【项目架构硬核特征指纹图谱】:\n${mapStr}\n\n${targetedFilesPayload}${attachedCodeContext}【用户最新修改指令】: ${prompt}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，并在末尾更新 <project_map>！`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -944,7 +879,7 @@ ${currentInspectorTarget.outerHTML}
           showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 故障已定向修复 (${updated.join(', ')})！`);
+          showToast(`✨ 文件已定向更新 (${updated.join(', ')})！`);
 
           const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
           if (unmappedFiles.length > 0) {
@@ -1001,10 +936,10 @@ ${currentInspectorTarget.outerHTML}
       switchBottomTab('maker');
 
       const slimPrompt = `【专项重构任务：对超大文件 ${target} 进行智能瘦身与模块化拆分解耦】
-请深度研读 ${target} 的源码，将其内部各个独立的业务模块/弹窗/抽屉（如身份档案、设置中心、聊天室、朋友圈动态等）彻底抽离封装为独立的组件文件（如 \`js/components/xxx.js\`、\`css/xxx.css\`、\`data/xxx.json\`）：
+请深度研读 ${target} 的源码，将其内部各个独立的业务模块/弹窗/抽屉彻底抽离封装为独立的组件文件（如 \`js/components/xxx.js\`、\`css/xxx.css\`）：
 1. 大幅精简 ${target} 本身，只保留最核心干净的骨架与主干挂载逻辑。
 2. 确保拆分后的各子模块在单页 SPA 中依然 100% 正常运行，点击事件与样式完美生效！
-3. 为所有新拆分出的文件在 <project_map> 里生成超详细的【检索关键词: xxx, xxx】！`;
+3. 为所有新拆分出的文件在 <project_map> 里生成详细的【包含 ID/Class 的硬核特征检索关键词】！`;
 
       document.getElementById('promptInput').value = slimPrompt;
       sendMessage();
@@ -1076,11 +1011,14 @@ ${currentInspectorTarget.outerHTML}
       modal.classList.add('flex');
 
       try {
-        const prompt = `请深度研读以下前端文件的源码，为其提炼出极其详尽、丰富的中文【检索关键词】和职责说明。
-要求：
-1. 关键词必须包含该文件涉及的全部 UI 组件名、页面名称、业务动作、函数名、状态字段等，至少提供 6-10 个精准词。
-2. 必须严格按照如下单行格式输出，禁止任何多余前缀：
-【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】该文件具体负责的功能、组件与函数逻辑详细说明。
+        const prompt = `请深度研读以下前端文件的源码，为其提炼出类似于“字典索引”的详尽【检索关键词】。
+为了让后续的 AI 能精准找到该文件，你的关键词必须包含该文件独有的“硬特征”：
+1. 核心的 DOM 元素的 ID 或 Class 名（如 #login-btn, .modal-wrap）。
+2. 核心的 JavaScript 函数名、变量名（如 fetchData(), userState）。
+3. 页面上显示的特殊中文文本内容（如 "点击注册"、"确认提交"）。
+
+必须严格按照如下单行格式输出，禁止任何多余前缀：
+【检索关键词: #id名, .class名, 函数名, 页面中文文本, ...】该文件具体负责的功能与逻辑详细说明。
 
 文件路径：${filePath}
 源码内容如下：
@@ -1120,7 +1058,7 @@ ${code}
       if (!currentEditingFile) return;
       const text = document.getElementById('keywordEditTextarea').value.trim();
       if (!text) {
-        showToast('关键词说明不能为空');
+        showToast('指纹说明不能为空');
         return;
       }
 
@@ -1128,7 +1066,7 @@ ${code}
       persistAllData(true);
       renderProjectMapUI();
       closeKeywordModal();
-      showToast(`✨ ${currentEditingFile} 专属关键词已保存生效！`);
+      showToast(`✨ ${currentEditingFile} 专属指纹关键词已保存生效！`);
     }
 
     function closeKeywordModal() {
@@ -1204,7 +1142,7 @@ ${code}
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "18.0",
+        version: "18.1",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -1444,7 +1382,7 @@ ${code}
                   </button>
                 ` : ''}
                 <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2.5 py-1 bg-zinc-50 hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 shadow-2xs">
-                  <span>✨ 智能提取关键词</span>
+                  <span>✨ 提取硬核指纹</span>
                 </button>
               </div>
             ` : ''}
@@ -1465,8 +1403,8 @@ ${code}
       if (chatHistory.length === 0) {
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 视觉审查与精准修复工作坊 (v18.0)</div>
-            <p>输入你的需求，或在预览里点击 🔍 拾取故障元素带证据提问。</p>
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 纯文本精准寻址架构工作坊</div>
+            <p>为了让 AI 精准找到代码，请在提问时提供<b>硬核路标</b>。<br>✅ <b>正确示范：</b>“在【用户设置弹窗】里，找到带有 \`.submit-btn\` 的按钮，改成红色。”</p>
           </div>
         `;
         return;
@@ -1486,21 +1424,9 @@ ${code}
             `;
           }
 
-          let inspectorBadge = '';
-          if (msg.inspectorTarget) {
-            inspectorBadge = `
-              <div class="flex justify-end mb-1">
-                <span class="bg-indigo-600/90 text-white text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold shadow-2xs">
-                  🎯 锁定故障: &lt;${msg.inspectorTarget.tag}${msg.inspectorTarget.id ? '#' + msg.inspectorTarget.id : ''}&gt;
-                </span>
-              </div>
-            `;
-          }
-
           return `
             <div class="flex flex-col items-end msg-container" data-index="${index}">
               ${attachBadges}
-              ${inspectorBadge}
               <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按弹出操作菜单">
                 ${escapeHtml(msg.content)}
               </div>
@@ -1672,7 +1598,7 @@ ${code}
     }
 
     // ==========================================
-    // 纯本地沙箱打包与渲染 (注入视觉拾取器探针)
+    // 纯本地沙箱打包与渲染
     // ==========================================
     function refreshPreview() {
       const iframe = document.getElementById('previewFrame');
@@ -1741,93 +1667,6 @@ ${code}
           } catch(e) {}
         })();
 
-        // 🌟 视觉审查拾取器探针 (支持高亮与点击捕获证据)
-        (function() {
-          let inspectorActive = false;
-          let highlightOverlay = null;
-
-          function createHighlightOverlay() {
-            if (highlightOverlay) return;
-            highlightOverlay = document.createElement('div');
-            highlightOverlay.id = '__inspector_overlay__';
-            highlightOverlay.style.cssText = 'position:fixed;pointer-events:none;z-index:999999;border:2px dashed #4f46e5;background:rgba(79,70,229,0.15);transition:all 0.1s ease;display:none;';
-            document.body.appendChild(highlightOverlay);
-          }
-
-          function getElementPath(el) {
-            const path = [];
-            while (el && el.nodeType === Node.ELEMENT_NODE && el !== document.body) {
-              let selector = el.tagName.toLowerCase();
-              if (el.id) {
-                selector += '#' + el.id;
-                path.unshift(selector);
-                break;
-              } else if (el.className && typeof el.className === 'string') {
-                selector += '.' + el.className.trim().split(/\\s+/)[0];
-              }
-              path.unshift(selector);
-              el = el.parentElement;
-            }
-            return path.join(' > ');
-          }
-
-          function updateOverlay(el) {
-            if (!inspectorActive || !el || el === document.body || el === highlightOverlay) {
-              if (highlightOverlay) highlightOverlay.style.display = 'none';
-              return;
-            }
-            createHighlightOverlay();
-            const rect = el.getBoundingClientRect();
-            highlightOverlay.style.left = rect.left + 'px';
-            highlightOverlay.style.top = rect.top + 'px';
-            highlightOverlay.style.width = rect.width + 'px';
-            highlightOverlay.style.height = rect.height + 'px';
-            highlightOverlay.style.display = 'block';
-          }
-
-          window.addEventListener('message', e => {
-            if (e.data && e.data.type === 'SET_INSPECTOR_MODE') {
-              inspectorActive = !!e.data.enabled;
-              createHighlightOverlay();
-              if (!inspectorActive && highlightOverlay) {
-                highlightOverlay.style.display = 'none';
-              }
-            }
-          });
-
-          document.addEventListener('mouseover', e => {
-            if (inspectorActive) updateOverlay(e.target);
-          }, true);
-
-          document.addEventListener('click', e => {
-            if (inspectorActive) {
-              e.preventDefault();
-              e.stopPropagation();
-              
-              const target = e.target;
-              const cs = window.getComputedStyle(target);
-              
-              const info = {
-                tag: target.tagName.toLowerCase(),
-                id: target.id || '',
-                className: target.className || '',
-                outerHTML: target.outerHTML.substring(0, 450),
-                path: getElementPath(target),
-                computed: {
-                  display: cs.display,
-                  visibility: cs.visibility,
-                  pointerEvents: cs.pointerEvents,
-                  zIndex: cs.zIndex,
-                  position: cs.position
-                }
-              };
-
-              window.parent.postMessage({ type: 'INSPECTOR_ELEMENT_PICKED', data: info }, '*');
-              if (highlightOverlay) highlightOverlay.style.display = 'none';
-            }
-          }, true);
-        })();
-
         ['log', 'warn', 'error', 'info'].forEach(t => {
           const o = console[t];
           console[t] = (...a) => {
@@ -1844,19 +1683,6 @@ ${code}
     function handleIframeMessage(e) {
       if (!e.data) return;
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
-      
-      // 🌟 接收视觉审查拾取到的元素数据
-      if (e.data.type === 'INSPECTOR_ELEMENT_PICKED') {
-        pickedInspectorElement = e.data.data;
-        toggleInspectorMode(); // 关闭拾取模式
-        switchBottomTab('maker'); // 自动跳转至制作对话页
-
-        document.getElementById('inspectorBadgeContainer').classList.remove('hidden');
-        document.getElementById('inspectorBadgeText').innerText = `<${pickedInspectorElement.tag}${pickedInspectorElement.id ? '#' + pickedInspectorElement.id : ''}> (${pickedInspectorElement.path})`;
-        
-        showToast('🎯 已捕获目标元素现场证据！请描述你的修复需求');
-        document.getElementById('promptInput').focus();
-      }
 
       if (e.data.type === 'SANDBOX_STORAGE_SET') {
         sandboxStorage[e.data.key] = e.data.value;
