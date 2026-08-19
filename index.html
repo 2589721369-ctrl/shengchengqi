@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 双阶段智能架构版</title>
+  <title>AI Web Studio - 关键词自动同步版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🧠 真实双阶段决策 Agent:</span>
-          <span class="truncate">AI 先分析需求与图谱决定改哪，再定向动手术。</span>
+          <span class="text-indigo-600 font-semibold">🔄 关键词自适应同步已就绪:</span>
+          <span class="truncate">每次修改文件，图谱与关键词自动更新。</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -64,15 +64,15 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 真实两阶段决策工作坊</div>
-          <p>已启用<b>AI 真实意图路由决策</b>：你发出指令后，AI 会先作为<b>架构师</b>研读需求与图谱，严谨决策出该改哪几个文件，再提取源码执行微创修改，代码量再大也绝不改乱！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 全自动关键词自愈工作坊</div>
+          <p>每次修改代码后，系统会<b>自动更新修改文件的关键词与功能描述</b>，确保寻址图谱时刻处于最新状态。清空对话后，AI 依然能 100% 准确命中！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
         </div>
       </div>
 
-      <!-- 生成进度提示 (动态展示双阶段思考过程) -->
+      <!-- 生成进度提示 -->
       <div id="stepProgress" class="hidden px-4 py-2.5 bg-indigo-50 border-t border-indigo-100 text-indigo-700 text-[11px] flex items-center justify-center space-x-2 shrink-0">
         <svg class="animate-spin h-3.5 w-3.5 text-indigo-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         <span id="stepProgressText" class="truncate font-medium">AI 正在深度思考分析...</span>
@@ -86,7 +86,7 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入需求（如：“让聊天室支持发送图片描述并触发朋友圈动态联动”）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="输入需求（如：“把设置页面里的音量滑块改成蓝色圆角”）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -110,7 +110,6 @@
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
-        <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
           <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">平板</button>
@@ -203,7 +202,7 @@
       <div class="max-w-3xl mx-auto space-y-4">
         <div>
           <h2 class="text-base font-bold text-zinc-900">项目资产与寻址图谱管理</h2>
-          <p class="text-xs text-zinc-500">在图谱中可为每个文件<b>智能提取与定制专属关键词</b>，保障 AI 检索 100% 精确。</p>
+          <p class="text-xs text-zinc-500">在图谱中可为每个文件<b>智能提取与定制专属关键词</b>，修改代码后系统会自动同步更新关键词。</p>
         </div>
 
         <!-- 顶置三大卡片 -->
@@ -257,7 +256,7 @@
               <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
                 <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
               </h3>
-              <p class="text-[11px] text-zinc-400 mt-0.5">点击每个文件旁的【✨ 智能提取关键词】，AI 会自动提炼全部代码关键词供你审查定制！</p>
+              <p class="text-[11px] text-zinc-400 mt-0.5">每次修改文件后，系统会自动将新增功能更新至关键词列表。</p>
             </div>
             <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0">0 个文件 · 0 行代码</span>
           </div>
@@ -377,7 +376,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_AGENT_V13';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_AUTOSYNC_V14';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图 (含检索关键词)
@@ -400,11 +399,11 @@
 2. 必须积极主动地将工程合理拆分成多个模块文件（样式层 css/, 逻辑层 js/, 数据层 data/）。
 3. 始终以 \`index.html\` 作为主入口引入这些 CSS 和 JS 文件。
 
-【最核心原则 2 - 架构图谱与极致详细的检索关键词规范】：
-每次在输出末尾更新 <project_map> 时，每个文件必须包含极其详尽、丰富的【检索关键词】（包括所有涉及的UI组件名、功能动作、函数名、数据字段等，关键词至少5-10个），格式必须严格如下：
+【最核心原则 2 - 必须自动同步更新被改动文件的【检索关键词】】：
+每次在输出末尾更新 <project_map> 时，【必须为你本次修改或新建的每一个文件输出最新的检索关键词与描述】（必须包含你刚刚新增的函数名、新UI组件与业务动作，至少5-10个关键词），格式必须严格如下：
 <project_map>
 {
-  "文件完整路径": "【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, 关键词5, ...】该文件具体负责的功能、组件与函数逻辑详细说明"
+  "被修改的文件完整路径": "【检索关键词: 旧关键词, 刚刚新增的功能关键词1, 关键词2, ...】更新后的最新完整职责说明"
 }
 </project_map>
 
@@ -584,7 +583,7 @@
     }
 
     // ==========================================
-    // 🌟 阶段 1：真正的 AI 架构师深度分析与文件决策 Agent
+    // 阶段 1：AI 架构师深度分析与文件决策 Agent
     // ==========================================
     async function planTargetFilesWithAI(userPrompt, baseUrl, apiKey, model) {
       const allFileKeys = Object.keys(virtualFiles);
@@ -621,12 +620,10 @@
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         let content = data.choices[0].message.content.trim();
-        // 清除 markdown 标记
         content = content.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
         const parsed = JSON.parse(content);
 
         if (Array.isArray(parsed.target_files) && parsed.target_files.length > 0) {
-          // 过滤只保留真实存在的文件
           const valid = parsed.target_files.filter(f => virtualFiles[f]);
           if (valid.length > 0) {
             return { target_files: valid, reason: parsed.reason || "AI 架构师已命中目标" };
@@ -636,7 +633,6 @@
         console.warn('AI 架构师决策回退:', err);
       }
 
-      // 后备方案
       return { 
         target_files: ['index.html', allFileKeys.find(f => f.endsWith('.js')), allFileKeys.find(f => f.endsWith('.css'))].filter(Boolean),
         reason: "根据基础入口模块进行后备加载" 
@@ -644,7 +640,51 @@
     }
 
     // ==========================================
-    // 🌟 阶段 2：定向抓取源码并进行微创代码生成
+    // 🌟 后台自动自愈补齐被改动文件的关键词
+    // ==========================================
+    async function autoRefreshKeywordsForFiles(filePaths, baseUrl, apiKey, model) {
+      for (const filePath of filePaths) {
+        const code = virtualFiles[filePath];
+        if (!code) continue;
+
+        try {
+          const prompt = `请深度研读以下刚刚被修改的前端文件最新源码，为其提炼出最新的中文【检索关键词】和职责说明（务必包含新增的函数名与UI组件）。
+必须严格按照单行格式输出：
+【检索关键词: 关键词1, 关键词2, 关键词3, 关键词4, ...】该文件具体负责的功能、组件与函数逻辑详细说明。
+
+文件路径：${filePath}
+最新源码如下：
+\`\`\`
+${code}
+\`\`\``;
+
+          const res = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+              model: model,
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.1
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const extracted = data.choices[0].message.content.trim();
+            if (extracted) {
+              projectMap[filePath] = extracted;
+              persistAllData();
+              renderProjectMapUI();
+            }
+          }
+        } catch (e) {
+          console.warn(`[自动关键词更新] ${filePath} 自愈补齐跳过:`, e);
+        }
+      }
+    }
+
+    // ==========================================
+    // 阶段 2：定向抓取源码并进行微创代码生成
     // ==========================================
     async function sendMessage() {
       const input = document.getElementById('promptInput');
@@ -691,7 +731,7 @@
       persistAllData();
       updateRollbackUI();
 
-      // 🌟 第一阶段：AI 架构师先进行真实的语义决策与寻址
+      // 🌟 第一阶段：AI 架构师深度分析与文件决策
       setLoading(true, `🧠 AI 架构师正在分析需求并研读图谱决策文件...`);
       
       let decision = { target_files: [], reason: "" };
@@ -700,10 +740,10 @@
       }
 
       const targetNotice = decision.target_files.length > 0 
-        ? `🎯 AI 架构师锁定 ${decision.target_files.length} 个文件 (${decision.target_files.join(', ')})` 
+        ? `🎯 锁定 ${decision.target_files.length} 个文件 (${decision.target_files.join(', ')})` 
         : `正在从零创建项目`;
 
-      // 🌟 第二阶段：将锁定的目标文件源码提取送达，进行微创代码编写
+      // 🌟 第二阶段：定向编写与增量手术
       setLoading(true, `正在定向编码: ${targetNotice}...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
@@ -734,7 +774,7 @@
         }
       });
 
-      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【规范要求】：请基于目标文件完整输出被修改或新建的文件 <file path="...">（必须输出完整可用代码，严禁省略），若需清理废弃旧文件请输出 <delete_file path="..."/>，并在末尾更新 <project_map>。`;
+      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -778,9 +818,8 @@
 
         const aiReply = data.choices[0].message.content;
 
-        // 🌟 防截断代码安全检查与解析
         const { updated, hasTruncation } = parseFilesFromOutputSafe(aiReply);
-        parseProjectMapFromOutput(aiReply);
+        const mappedFiles = parseProjectMapFromOutput(aiReply);
 
         chatHistory.push({ role: "assistant", content: aiReply, updatedFiles: updated });
         renderChatMessages();
@@ -789,7 +828,13 @@
           showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 定向修改完毕 (${updated.join(', ')})！`);
+          showToast(`✨ 代码已更新 (${updated.join(', ')})！`);
+
+          // 🌟 自动检查：如果有被修改的文件漏了关键词更新，立即在后台自动自愈补全！
+          const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
+          if (unmappedFiles.length > 0) {
+            autoRefreshKeywordsForFiles(unmappedFiles, baseUrl, apiKey, model);
+          }
         }
         persistAllData();
         updateRollbackUI();
@@ -808,7 +853,7 @@
     }
 
     // ==========================================
-    // 🌟 防截断安全代码解析器 (杜绝乱码与残缺代码覆盖)
+    // 防截断安全代码解析器
     // ==========================================
     function parseFilesFromOutputSafe(text) {
       const updated = [];
@@ -837,11 +882,11 @@
         matchedPaths.add(path);
       }
 
-      // 检查是否有未闭合的 <file> 标签（即被中转站 Token 截断中断的坏代码）
+      // 检查是否有未闭合的 <file> 标签
       const unclosedMatch = /<file\s+path=["']([^"']+)["']>([\s\S]*)$/i.exec(text);
       if (unclosedMatch && !text.endsWith('</file>') && !matchedPaths.has(unclosedMatch[1].trim())) {
         hasTruncation = true;
-        console.warn(`[安全拦截] 文件 ${unclosedMatch[1]} 输出未闭合（可能触碰中转站字数上限），已拒绝覆盖以防代码损坏！`);
+        console.warn(`[安全拦截] 文件 ${unclosedMatch[1]} 输出未闭合，已拒绝覆盖！`);
       }
 
       refreshUIElements();
@@ -849,7 +894,7 @@
     }
 
     // ==========================================
-    // 🌟 单文件智能关键词提取与编辑逻辑
+    // 单文件智能关键词提取与编辑逻辑
     // ==========================================
     async function triggerExtractKeywords(filePath) {
       const code = virtualFiles[filePath];
@@ -1010,7 +1055,7 @@ ${code}
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "13.0",
+        version: "14.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -1160,18 +1205,24 @@ ${code}
     }
 
     // ==========================================
-    // 寻址图谱渲染
+    // 寻址图谱渲染与解析
     // ==========================================
     function parseProjectMapFromOutput(text) {
       const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
       if (mapMatch && mapMatch[1]) {
         try {
-          const parsed = JSON.parse(mapMatch[1].trim());
+          let jsonStr = mapMatch[1].trim();
+          jsonStr = jsonStr.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+          const parsed = JSON.parse(jsonStr);
           projectMap = { ...projectMap, ...parsed };
           refreshUIElements();
           renderProjectMapUI();
-        } catch (e) {}
+          return Object.keys(parsed);
+        } catch (e) {
+          console.warn('解析 project_map 出错:', e);
+        }
       }
+      return [];
     }
 
     function renderProjectMapUI() {
