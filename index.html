@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 纯文本精准寻址版</title>
+  <title>AI Web Studio - 显微镜级白话档案版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -34,12 +34,18 @@
         <span id="topFileCount">0文件</span>
       </div>
       <span class="text-zinc-300">·</span>
-      <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0模块</span>
+      <span id="topFeatureCount" class="text-[11px] text-indigo-600 font-medium shrink-0">0档案</span>
     </div>
 
-    <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
-      <span>💾 保存</span>
-    </button>
+    <div class="flex items-center space-x-2">
+      <!-- 显微镜级一键生成档案按钮 -->
+      <button onclick="globalAutoGenerateAllMaps()" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition shadow-2xs flex items-center space-x-1" title="让 AI 极其详细地盘点每个文件的所有功能细节">
+        <span>⚡ 一键生成显微镜级详细档案</span>
+      </button>
+      <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
+        <span>💾 保存</span>
+      </button>
+    </div>
   </header>
 
   <!-- ==================== 2. 主体视口容器 ==================== -->
@@ -49,8 +55,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🤖 纯文本语义精准寻址:</span>
-          <span class="truncate">提问时带上模块名、特征文本或 Class，AI 自动定位文件。</span>
+          <span class="text-indigo-600 font-semibold">🤖 显微镜级档案闭环:</span>
+          <span class="truncate">支持血缘图谱与思维链，大白话雷达绝不迷路！</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -63,18 +69,15 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 纯文本精准寻址架构工作坊</div>
-          <p>为了让 AI 精准找到代码，请在提问时提供<b>硬核路标</b>。<br>✅ <b>正确示范：</b>“在【用户设置弹窗】里，找到带有 `.submit-btn` 的按钮，改成红色。”</p>
-          <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
-            💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
-          </div>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 显微镜级大白话无忧创作坊</div>
+          <p>尽管放手把网页做大。随时点击顶部<b>【⚡ 一键生成显微镜级详细档案】</b>，AI 就会把每个文件里包含的每一个元素、每一个函数、每一个业务逻辑扒得清清楚楚！</p>
         </div>
       </div>
 
       <!-- 生成进度提示 -->
       <div id="stepProgress" class="hidden px-4 py-2.5 bg-indigo-50 border-t border-indigo-100 text-indigo-700 text-[11px] flex items-center justify-center space-x-2 shrink-0">
         <svg class="animate-spin h-3.5 w-3.5 text-indigo-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span id="stepProgressText" class="truncate font-medium">AI 正在深度思考分析...</span>
+        <span id="stepProgressText" class="truncate font-medium">AI 正在深度解剖代码细节...</span>
       </div>
 
       <!-- 输入栏 -->
@@ -85,21 +88,21 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="描述你的修改需求，例如：在【用户设置弹窗】里，把【确认】按钮改成红色..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="用大白话描述需求，例如：在订单管理页面的表格里增加一列删除按钮..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
             <input type="file" id="fileUploader" multiple accept="image/*,.html,.htm,.js,.css,.json,.txt,.md,.svg" onchange="handleAttachmentUpload(event)" class="hidden">
             
             <div class="flex items-center space-x-2">
-              <button type="button" onclick="document.getElementById('fileUploader').click()" class="w-7 h-7 rounded-lg bg-zinc-200 hover:bg-zinc-300 text-zinc-800 flex items-center justify-center transition" title="上传图片或代码文件">
+              <button type="button" onclick="document.getElementById('fileUploader').click()" class="w-7 h-7 rounded-lg bg-zinc-200 hover:bg-zinc-300 text-zinc-800 flex items-center justify-center transition" title="上传截图或文件">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
               </button>
-              <span class="text-[10px] text-zinc-400">支持传图 / HTML / JS / CSS</span>
+              <span class="text-[10px] text-zinc-400">支持截图 / 文件</span>
             </div>
 
             <button id="sendBtn" onclick="sendMessage()" class="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
-              发送指令
+              发送大白话指令
             </button>
           </div>
         </div>
@@ -116,17 +119,19 @@
           <button onclick="setDeviceViewport('mobile')" id="btn-mobile" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">手机</button>
         </div>
 
+        <!-- 页面切换选择器与控制工具 -->
         <div class="flex items-center space-x-1.5">
+          <select id="previewPageSelector" onchange="refreshPreview(this.value)" class="bg-zinc-50 border border-zinc-200 text-zinc-700 text-[11px] font-mono rounded px-1.5 py-0.5 focus:outline-none max-w-[130px]"></select>
           <span class="text-[11px] text-zinc-500 font-mono bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200" id="scaleIndicator">100%</span>
           <button onclick="refreshPreview()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600" title="重新编译刷新">🔄</button>
           <button onclick="toggleConsoleDrawer()" class="p-1 hover:bg-zinc-100 rounded text-zinc-600 relative" title="控制台">📟</button>
         </div>
       </div>
 
-      <!-- 画布包裹容器 (支持自动等比缩放) -->
+      <!-- 画布包裹容器 -->
       <div id="previewCanvasWrapper" class="flex-1 p-2 md:p-4 flex items-center justify-center overflow-hidden bg-zinc-200/70 relative">
         <div id="deviceContainer" class="device-transition bg-white shadow-xl overflow-hidden relative flex flex-col shrink-0">
-          <iframe id="previewFrame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" class="w-full h-full border-0"></iframe>
+          <iframe id="previewFrame" class="w-full h-full border-0" allow="*"></iframe>
         </div>
       </div>
 
@@ -154,19 +159,15 @@
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Base URL</label>
               <input id="apiBaseUrl" type="text" placeholder="https://api.your-relay.com/v1" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">系统会自动纠错补全 /v1</span>
             </div>
             <div>
               <label class="text-xs font-medium text-zinc-600 block mb-1">中转站 API Key</label>
               <input id="apiKey" type="password" placeholder="sk-..." class="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono">
-              <span class="text-[10px] text-zinc-400 mt-1 block">仅保存在当前本地及导出 JSON 中</span>
             </div>
           </div>
 
           <div class="pt-2 border-t border-zinc-100">
-            <label class="text-xs font-medium text-zinc-700 block mb-1">
-              使用模型名称 (Model Name) <span class="text-zinc-400 font-normal">- 可直接手动输入修改</span>
-            </label>
+            <label class="text-xs font-medium text-zinc-700 block mb-1">使用模型名称 (Model Name)</label>
             <div class="flex space-x-2">
               <input id="customModelInput" type="text" placeholder="推荐: claude-3-5-sonnet, gpt-4o 等" class="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:bg-white focus:outline-none font-mono font-medium">
               <button onclick="saveApiSettings()" class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold rounded-xl transition shadow-sm">
@@ -176,7 +177,7 @@
           </div>
 
           <div class="flex items-center justify-between pt-2 border-t border-zinc-100">
-            <span class="text-xs text-zinc-500">也可直接拉取中转站的所有可用模型：</span>
+            <span class="text-xs text-zinc-500">拉取中转站可用模型：</span>
             <button onclick="fetchRemoteModels()" id="fetchModelsBtn" class="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-medium rounded-xl transition flex items-center space-x-1">
               <span>🔄 拉取中转站模型列表</span>
             </button>
@@ -189,9 +190,7 @@
             <input id="modelSearchInput" oninput="filterModels()" type="text" placeholder="搜索模型..." class="w-56 px-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs focus:bg-white focus:outline-none">
           </div>
           <div id="modelsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto p-0.5">
-            <div class="col-span-full py-4 text-center text-xs text-zinc-400">
-              暂未拉取，可在上方直接输入自定义模型，或点击“拉取中转站模型列表”
-            </div>
+            <div class="col-span-full py-4 text-center text-xs text-zinc-400">暂未拉取</div>
           </div>
         </div>
       </div>
@@ -200,24 +199,22 @@
     <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
-        <!-- 版本标识 -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-zinc-200/80 pb-3">
           <div>
             <div class="flex items-center space-x-2">
-              <h2 class="text-base font-bold text-zinc-900">项目资产与架构寻址管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.1 精准指纹寻址版</span>
+              <h2 class="text-base font-bold text-zinc-900">项目资产与显微镜级档案管理</h2>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.6 DOM精确解析版</span>
             </div>
-            <p class="text-xs text-zinc-500 mt-0.5">支持纯文本语义通过硬核代码指纹精准直达底层文件。</p>
+            <p class="text-xs text-zinc-500 mt-0.5">每个文件包含的所有元素、函数、交互细节全景记录。</p>
           </div>
         </div>
 
-        <!-- 顶置三大卡片 -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button onclick="exportProjectJson()" class="p-4 bg-zinc-900 hover:bg-zinc-800 text-white rounded-2xl shadow-sm text-left flex flex-col justify-between space-y-2 transition">
             <span class="text-xl">📄</span>
             <div>
               <div class="text-xs font-bold">导出全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">含代码、图谱、API 及网页内部数据</div>
+              <div class="text-[10px] text-zinc-400">含代码、详细档案、API 等</div>
             </div>
           </button>
 
@@ -225,7 +222,7 @@
             <span class="text-xl">📥</span>
             <div>
               <div class="text-xs font-bold">导入全量 JSON 备份</div>
-              <div class="text-[10px] text-zinc-400">选择 .json 文件 100% 完整还原</div>
+              <div class="text-[10px] text-zinc-400">选择 .json 文件完整还原</div>
             </div>
             <input type="file" accept=".json" onchange="importProjectJson(event)" class="hidden">
           </label>
@@ -234,42 +231,38 @@
             <span class="text-xl">📦</span>
             <div>
               <div class="text-xs font-bold">打包导出 ZIP</div>
-              <div class="text-[10px] text-zinc-400">下载用于上线的网页压缩包</div>
+              <div class="text-[10px] text-zinc-400">下载用于上线的源码压缩包</div>
             </div>
           </button>
         </div>
 
-        <!-- 操作按钮栏 -->
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="persistAllData(true)" class="px-3.5 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl shadow-2xs">
             💾 立即保存到浏览器
           </button>
-          
           <button id="mainRollbackBtn" onclick="rollbackLastTurn()" class="px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed" disabled>
             ↩️ 撤回最后一轮修改 (无记录)
           </button>
-
           <span class="text-[11px] text-zinc-400 font-mono" id="sandboxDataCountLabel">已同步 0 项网页数据</span>
           <button onclick="resetEntireProject()" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-xl ml-auto">
             🗑️ 清空所有数据
           </button>
         </div>
 
-        <!-- 寻址图谱 -->
         <div class="bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div class="flex justify-between items-center border-b border-zinc-100 pb-2.5">
             <div>
               <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
-                <span>🧠 AI 硬核特征指纹图谱 (Architecture Manifest)</span>
+                <span>🧠 显微镜级白话档案图谱</span>
               </h3>
-              <p class="text-[11px] text-zinc-400 mt-0.5">当 AI 寻址错乱时，请点击右下角【提取关键词】更新文件底层指纹。</p>
+              <p class="text-[11px] text-zinc-400 mt-0.5">这里详尽记录着每个文件的所有组件与函数细节。</p>
             </div>
             <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
               0 个文件 · 0 行代码
             </span>
           </div>
           <div id="projectMapContainer" class="space-y-3 max-h-[480px] overflow-y-auto pt-1">
-            <div class="text-zinc-400 text-xs italic py-4 text-center">暂无数据，AI 生成项目后将在此展示文件与关键词提取功能。</div>
+            <div class="text-zinc-400 text-xs italic py-4 text-center">暂无数据，请点击顶部“一键生成”按钮。</div>
           </div>
         </div>
 
@@ -280,179 +273,118 @@
 
   <!-- ==================== 3. 底部固定导航栏 ==================== -->
   <nav class="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-zinc-300 z-50 flex items-center justify-around px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
-    
     <button onclick="switchBottomTab('maker')" id="nav-maker" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-900 transition">
       <div id="nav-maker-icon" class="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
       </div>
       <span id="nav-maker-text" class="text-[11px] font-bold mt-0.5">制作</span>
     </button>
-
     <button onclick="switchBottomTab('preview')" id="nav-preview" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
       <div id="nav-preview-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
       </div>
       <span id="nav-preview-text" class="text-[11px] font-medium mt-0.5">预览HTML</span>
     </button>
-
     <button onclick="switchBottomTab('api')" id="nav-api" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
       <div id="nav-api-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"></rect><rect x="9" y="9" width="6" height="6" stroke-width="2"></rect><path stroke-linecap="round" stroke-width="2" d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"></path></svg>
       </div>
       <span id="nav-api-text" class="text-[11px] font-medium mt-0.5">API</span>
     </button>
-
     <button onclick="switchBottomTab('settings')" id="nav-settings" class="flex flex-col items-center justify-center flex-1 h-full py-1 text-zinc-400 hover:text-zinc-700 transition">
       <div id="nav-settings-icon" class="w-8 h-8 rounded-xl bg-transparent text-zinc-500 flex items-center justify-center">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M8 4v4M16 10v4M10 16v4"></path></svg>
       </div>
       <span id="nav-settings-text" class="text-[11px] font-medium mt-0.5">其他设置</span>
     </button>
-
   </nav>
 
   <!-- ==================== 4. 模态弹窗区 ==================== -->
-
-  <!-- 一键智能文件瘦身拆分确认弹窗 -->
   <div id="slimConfirmModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
-    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-md shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-md shadow-2xl space-y-4">
       <div class="flex items-center space-x-2.5 border-b border-zinc-100 pb-3">
         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">✂️</div>
         <div>
-          <h4 class="text-sm font-bold text-zinc-900">智能文件解耦与瘦身拆分</h4>
-          <p id="slimModalTargetLabel" class="text-xs text-amber-700 font-mono font-semibold">index.html (1183 行代码)</p>
+          <h4 class="text-sm font-bold text-zinc-900">智能文件瘦身拆分</h4>
+          <p id="slimModalTargetLabel" class="text-xs text-amber-700 font-mono font-semibold">index.html</p>
         </div>
       </div>
-
-      <div class="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 text-xs text-amber-900 leading-relaxed space-y-1.5">
-        <p class="font-semibold">💡 AI 将执行以下自动化瘦身解耦操作：</p>
-        <ul class="list-disc list-inside space-y-1 text-[11px] text-amber-800">
-          <li>分析该文件内的所有大型业务模块、弹窗与抽屉面板；</li>
-          <li>将各子模块抽离封装为独立的组件文件（如 <code>js/xxx.js</code>、<code>css/xxx.css</code>）；</li>
-          <li>大幅精简当前文件本身，并自动为每个新拆出的文件配置图谱硬核关键词！</li>
-        </ul>
-      </div>
-
+      <p class="text-xs text-zinc-600">AI 将自动将大文件拆分为多个小模块文件，并为每个新文件生成显微镜级档案。</p>
       <div class="flex justify-end space-x-2 pt-1">
-        <button onclick="closeSlimModal()" class="px-4 py-2 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition">取消</button>
-        <button onclick="executeSlimFile()" class="px-4 py-2 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-semibold transition shadow-sm">
-          🚀 确认开始智能拆分瘦身
-        </button>
+        <button onclick="closeSlimModal()" class="px-4 py-2 text-xs bg-zinc-100 text-zinc-700 rounded-xl">取消</button>
+        <button onclick="executeSlimFile()" class="px-4 py-2 text-xs bg-amber-600 text-white rounded-xl font-semibold">确认拆分</button>
       </div>
     </div>
   </div>
 
-  <!-- 单文件智能关键词提取与编辑弹窗 -->
   <div id="keywordEditModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
-    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-lg shadow-2xl space-y-4 animate-in fade-in zoom-in duration-150">
+    <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-full max-w-lg shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b border-zinc-100 pb-3">
-        <div>
-          <h4 class="text-sm font-bold text-zinc-900 flex items-center space-x-1.5">
-            <span>✨ 智能提取硬特征指纹</span>
-          </h4>
-          <p id="keywordModalFilePath" class="text-xs text-indigo-600 font-mono mt-0.5 font-semibold">js/app.js</p>
-        </div>
-        <button onclick="closeKeywordModal()" class="text-zinc-400 hover:text-zinc-600 p-1">✕</button>
+        <h4 id="keywordModalFilePath" class="text-sm font-bold text-zinc-900">文件档案</h4>
+        <button onclick="closeKeywordModal()" class="text-zinc-400 hover:text-zinc-600">✕</button>
       </div>
-
-      <div id="keywordModalLoading" class="py-8 flex flex-col items-center justify-center space-y-2 text-indigo-600 text-xs">
-        <svg class="animate-spin h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <span class="animate-pulse font-medium">AI 正在深度研读源码，提取硬核特征指纹...</span>
-      </div>
-
+      <div id="keywordModalLoading" class="py-8 text-center text-xs text-indigo-600">AI 正在生成详尽档案...</div>
       <div id="keywordModalBody" class="space-y-2 hidden">
-        <label class="text-[11px] font-medium text-zinc-600 block">
-          AI 提炼的检索关键词（包含 ID/Class/中文特征文本）：
-        </label>
-        <textarea id="keywordEditTextarea" rows="5" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-800 focus:bg-white focus:border-zinc-900 focus:outline-none transition leading-relaxed"></textarea>
-        <p class="text-[10px] text-zinc-400">💡 提示：保留 <code>【检索关键词: xxx, xxx】</code> 格式，这些底层代码的指纹越多，AI 找文件越精准！</p>
+        <textarea id="keywordEditTextarea" rows="8" class="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-xs text-zinc-800 focus:outline-none leading-relaxed"></textarea>
       </div>
-
       <div class="flex justify-end space-x-2 pt-2 border-t border-zinc-100">
-        <button onclick="closeKeywordModal()" class="px-4 py-2 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-xl font-medium transition">取消更改</button>
-        <button id="saveKeywordBtn" onclick="saveCustomKeywords()" class="px-4 py-2 text-xs bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl font-semibold transition shadow-sm" disabled>
-          💾 保存指纹并应用
-        </button>
+        <button onclick="closeKeywordModal()" class="px-4 py-2 text-xs bg-zinc-100 text-zinc-700 rounded-xl">取消</button>
+        <button id="saveKeywordBtn" onclick="saveCustomKeywords()" class="px-4 py-2 text-xs bg-zinc-900 text-white rounded-xl font-semibold" disabled>保存</button>
       </div>
     </div>
   </div>
 
-  <!-- 长按操作菜单弹窗 -->
   <div id="actionMenuModal" class="fixed inset-0 bg-zinc-900/40 backdrop-blur-xs hidden items-center justify-center z-50">
     <div class="bg-white border border-zinc-200 rounded-2xl p-5 w-80 max-w-[92vw] shadow-2xl space-y-3">
-      <div class="text-center">
-        <h4 id="actionMenuTitle" class="text-sm font-bold text-zinc-900">消息选项</h4>
-        <p id="actionMenuDesc" class="text-xs text-zinc-500 mt-0.5">请选择要对该条消息执行的操作</p>
-      </div>
-
+      <div class="text-center"><h4 class="text-sm font-bold text-zinc-900">消息选项</h4></div>
       <div class="space-y-2 pt-1">
-        <button id="menuRedoBtn" onclick="executeMenuRedo()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center justify-center space-x-1.5 transition hidden">
-          <span>🔄 重新制作此轮 (撤销本轮文件改动并重试)</span>
-        </button>
-
-        <button onclick="executeMenuCopy()" class="w-full py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-          <span>📋 复制文本内容</span>
-        </button>
-
-        <button onclick="executeMenuDelete()" class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-medium flex items-center justify-center space-x-1.5 transition">
-          <span>🗑️ 删除此条记录</span>
-        </button>
-
-        <button onclick="closeActionMenu()" class="w-full py-2 px-3 text-zinc-400 hover:text-zinc-600 text-xs font-medium transition pt-1">
-          取消
-        </button>
+        <button id="menuRedoBtn" onclick="executeMenuRedo()" class="w-full py-2.5 px-3 bg-indigo-600 text-white rounded-xl text-xs font-semibold hidden">🔄 重新制作此轮</button>
+        <button onclick="executeMenuCopy()" class="w-full py-2.5 px-3 bg-zinc-100 text-zinc-800 rounded-xl text-xs font-medium">📋 复制文本</button>
+        <button onclick="executeMenuDelete()" class="w-full py-2.5 px-3 bg-red-50 text-red-600 rounded-xl text-xs font-medium">🗑️ 删除记录</button>
+        <button onclick="closeActionMenu()" class="w-full py-2 text-zinc-400 text-xs">取消</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast 提示 -->
   <div id="toastNotification" class="fixed top-4 left-1/2 transform -translate-x-1/2 -translate-y-16 opacity-0 bg-zinc-900 text-white px-4 py-2 rounded-xl shadow-2xl text-xs font-medium transition-all duration-300 flex items-center space-x-1.5 z-50 pointer-events-none">
-    <span>✦</span>
-    <span id="toastText">操作成功</span>
+    <span>✦</span><span id="toastText">成功</span>
   </div>
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_ROUTING_V18_1';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_6';
 
-    let virtualFiles = {};          // 后台虚拟多文件
-    let projectMap = {};            // 功能寻址脑图 (含检索关键词)
-    let chatHistory = [];           // 对话记忆
-    let remoteModels = [];          // 模型列表
-    let selectedModel = '';         // 当前选定模型
-    let selectedActionIndex = null; // 当前选中的长按消息索引
-    let pendingAttachments = [];    // 待发送附件
-    let currentViewportMode = 'desktop'; // 当前视口模式
-    let sandboxStorage = {};        // 网页内部真实产生的 localStorage 数据
-    let lastSnapshotState = null;   // 单步回滚备份
-    let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
-    let currentSlimmingFile = null; // 当前正在瘦身的目标文件
+    let virtualFiles = {};
+    let projectMap = {};
+    let chatHistory = [];
+    let remoteModels = [];
+    let selectedModel = '';
+    let selectedActionIndex = null;
+    let pendingAttachments = [];
+    let currentViewportMode = 'desktop';
+    let sandboxStorage = {};
+    let lastSnapshotState = null;
+    let currentEditingFile = null;
+    let currentSlimmingFile = null;
+    let currentPreviewPage = 'index.html';
 
-    const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
-你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
+    const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师。你负责为完全不懂代码的用户迭代一个多文件纯前端 Web 工程。
 
-【🚨 核心铁律 1 - 精准查阅与微创手术守则 🚨】：
-1. 必须仔细研读系统为你提供的 HTML+JS+CSS 协同源码 (<target_file>)。
-2. 未提及修改的已有功能、UI、函数名、DOM 元素 ID 必须 100% 绝对原样保留！
-3. 纯本地单页 SPA 规范，严禁生成会触发向外跳页的 <a> 链接！
-
-【🚨 核心铁律 2 - Scoped CSS 命名空间隔离守则 🚨】：
-1. 绝对禁止编写全局无命名空间的标签选择器（如 span, div, p, .card, .item 等）！
-2. 所有 CSS 规则必须以模块顶级 ID 为前缀（例如 \`#persona-modal .card\`, \`#chat-room .bubble\`），或者使用 Tailwind CSS 原子类，彻底杜绝跨文件、跨组件样式污染！
-
-【🚨 核心铁律 3 - 索引更新守则 🚨】：
-1. 每次输出末尾必须更新包含详细【硬核特征检索关键词】的 <project_map>，以便后续精准寻址。`;
+【🚨 核心要求 - 显微镜级血缘档案同步 🚨】：
+1. 每次修改、新建或删除文件后，必须在输出末尾追加 <project_map> JSON 标签。
+2. 该 JSON 中【只需要包含本次修改或新建】的文件，绝对不要输出未修改的文件！
+3. 每个文件的描述必须是一段纯文本，且严格遵循这三个分段：
+   💡功能：(一句话描述该文件作用与包含的HTML/UI)
+   📦抛出：(定义了哪些 JS 函数、全局变量、核心ID等供外部调用)
+   🔗依赖：(引用了工程中的哪些其他文件，例如引入的 js/css)
+   例如："💡功能：包含头部导航栏及用户表格。 📦抛出：loadData()。 🔗依赖：js/api.js"
+4. 新建组件用 <file path="...">，删除文件用 <delete_file path="..." />。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
-
       document.getElementById('promptInput').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
       });
-
       window.addEventListener('message', handleIframeMessage);
       window.addEventListener('resize', handleWindowResize);
       refreshUIElements();
@@ -472,10 +404,7 @@
       document.getElementById(`nav-${tabKey}-icon`).className = "w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm";
       document.getElementById(`nav-${tabKey}-text`).className = "text-[11px] font-bold mt-0.5";
 
-      if (tabKey === 'preview') {
-        refreshPreview();
-        setTimeout(() => setDeviceViewport(), 40);
-      }
+      if (tabKey === 'preview') { refreshPreview(); setTimeout(() => setDeviceViewport(), 40); }
       if (tabKey === 'api') renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
       if (tabKey === 'settings') renderProjectMapUI();
     }
@@ -483,7 +412,6 @@
     function setDeviceViewport(mode) {
       if (mode) currentViewportMode = mode;
       mode = currentViewportMode;
-
       const wrapper = document.getElementById('previewCanvasWrapper');
       const container = document.getElementById('deviceContainer');
       const scaleIndicator = document.getElementById('scaleIndicator');
@@ -500,247 +428,219 @@
       const wrapH = Math.max(wrapper.clientHeight - 20, 100);
 
       if (mode === 'desktop') {
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.transform = 'none';
-        container.style.borderRadius = '0.75rem';
-        container.style.border = '1px solid #e4e4e7';
+        container.style.width = '100%'; container.style.height = '100%'; container.style.transform = 'none';
+        container.style.borderRadius = '0.75rem'; container.style.border = '1px solid #e4e4e7';
         if (scaleIndicator) scaleIndicator.innerText = '桌面 100%';
       } else if (mode === 'tablet') {
-        const baseW = 768;
-        const baseH = 1024;
+        const baseW = 768, baseH = 1024;
         const scale = Math.min(wrapW / baseW, wrapH / baseH, 1);
-        container.style.width = `${baseW}px`;
-        container.style.height = `${baseH}px`;
-        container.style.transform = `scale(${scale.toFixed(3)})`;
-        container.style.transformOrigin = 'center center';
-        container.style.borderRadius = '1.25rem';
-        container.style.border = '4px solid #3f3f46';
+        container.style.width = `${baseW}px`; container.style.height = `${baseH}px`;
+        container.style.transform = `scale(${scale.toFixed(3)})`; container.style.transformOrigin = 'center center';
+        container.style.borderRadius = '1.25rem'; container.style.border = '4px solid #3f3f46';
         if (scaleIndicator) scaleIndicator.innerText = `平板 ${Math.round(scale * 100)}%`;
       } else if (mode === 'mobile') {
-        const baseW = 375;
-        const baseH = 667;
+        const baseW = 375, baseH = 667;
         const scale = Math.min(wrapW / baseW, wrapH / baseH, 1);
-        container.style.width = `${baseW}px`;
-        container.style.height = `${baseH}px`;
-        container.style.transform = `scale(${scale.toFixed(3)})`;
-        container.style.transformOrigin = 'center center';
-        container.style.borderRadius = '2rem';
-        container.style.border = '5px solid #27272a';
+        container.style.width = `${baseW}px`; container.style.height = `${baseH}px`;
+        container.style.transform = `scale(${scale.toFixed(3)})`; container.style.transformOrigin = 'center center';
+        container.style.borderRadius = '2rem'; container.style.border = '5px solid #27272a';
         if (scaleIndicator) scaleIndicator.innerText = `手机 ${Math.round(scale * 100)}%`;
       }
     }
 
     function handleWindowResize() {
-      if (!document.getElementById('view-preview').classList.contains('hidden')) {
-        setDeviceViewport();
-      }
+      if (!document.getElementById('view-preview').classList.contains('hidden')) setDeviceViewport();
     }
 
-    // ==========================================
-    // 附件与上传
-    // ==========================================
     function handleAttachmentUpload(event) {
       const files = Array.from(event.target.files);
       if (!files.length) return;
-
       files.forEach(file => {
         const isImage = file.type.startsWith('image/');
         const reader = new FileReader();
-
-        if (isImage) {
-          reader.onload = (e) => {
-            pendingAttachments.push({
-              name: file.name,
-              type: file.type,
-              isImage: true,
-              content: e.target.result,
-              size: (file.size / 1024).toFixed(1) + ' KB'
-            });
-            renderAttachmentPreviews();
-          };
-          reader.readAsDataURL(file);
-        } else {
-          reader.onload = (e) => {
-            pendingAttachments.push({
-              name: file.name,
-              type: file.type,
-              isImage: false,
-              content: e.target.result,
-              size: (file.size / 1024).toFixed(1) + ' KB'
-            });
-            renderAttachmentPreviews();
-          };
-          reader.readAsText(file);
-        }
+        reader.onload = (e) => {
+          pendingAttachments.push({ name: file.name, type: file.type, isImage, content: e.target.result, size: (file.size / 1024).toFixed(1) + ' KB' });
+          renderAttachmentPreviews();
+        };
+        if (isImage) reader.readAsDataURL(file);
+        else reader.readAsText(file);
       });
-
       event.target.value = '';
     }
 
     function renderAttachmentPreviews() {
       const container = document.getElementById('attachmentPreviews');
-      if (pendingAttachments.length === 0) {
-        container.classList.add('hidden');
-        container.innerHTML = '';
+      if (pendingAttachments.length === 0) { container.classList.add('hidden'); container.innerHTML = ''; return; }
+      container.classList.remove('hidden');
+      container.innerHTML = pendingAttachments.map((att, idx) => att.isImage ? `
+        <div class="flex items-center space-x-1.5 bg-white border border-zinc-200 rounded-lg p-1 pr-2 shadow-2xs text-[11px]">
+          <img src="${att.content}" class="w-6 h-6 object-cover rounded" alt="thumb">
+          <span class="truncate max-w-[100px] text-zinc-700 font-medium">${escapeHtml(att.name)}</span>
+          <button onclick="removeAttachment(${idx})" class="text-zinc-400 hover:text-red-500 ml-1">✕</button>
+        </div>
+      ` : `
+        <div class="flex items-center space-x-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 shadow-2xs text-[11px]">
+          <span>📄</span>
+          <span class="truncate max-w-[110px] text-zinc-700 font-mono font-medium">${escapeHtml(att.name)}</span>
+          <button onclick="removeAttachment(${idx})" class="text-zinc-400 hover:text-red-500 ml-1">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function removeAttachment(index) { pendingAttachments.splice(index, 1); renderAttachmentPreviews(); }
+
+    async function globalAutoGenerateAllMaps() {
+      const allFiles = Object.keys(virtualFiles);
+      if (allFiles.length === 0) return showToast('当前项目还没有任何文件');
+
+      const apiKey = document.getElementById('apiKey').value.trim();
+      let baseUrl = document.getElementById('apiBaseUrl').value.trim();
+      const model = selectedModel || document.getElementById('customModelInput').value.trim();
+
+      if (!baseUrl || !apiKey || !model) {
+        showToast('请先配置 API 参数');
+        switchBottomTab('api');
         return;
       }
 
-      container.classList.remove('hidden');
-      container.innerHTML = pendingAttachments.map((att, idx) => {
-        if (att.isImage) {
-          return `
-            <div class="flex items-center space-x-1.5 bg-white border border-zinc-200 rounded-lg p-1 pr-2 shadow-2xs text-[11px]">
-              <img src="${att.content}" class="w-6 h-6 object-cover rounded" alt="thumb">
-              <span class="truncate max-w-[100px] text-zinc-700 font-medium">${escapeHtml(att.name)}</span>
-              <button onclick="removeAttachment(${idx})" class="text-zinc-400 hover:text-red-500 ml-1">✕</button>
-            </div>
-          `;
-        } else {
-          const icon = att.name.endsWith('.html') ? '📄' : att.name.endsWith('.css') ? '🎨' : att.name.endsWith('.js') ? '⚡' : '📁';
-          return `
-            <div class="flex items-center space-x-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 shadow-2xs text-[11px]">
-              <span>${icon}</span>
-              <span class="truncate max-w-[110px] text-zinc-700 font-mono font-medium">${escapeHtml(att.name)}</span>
-              <span class="text-[9px] text-zinc-400">(${att.size})</span>
-              <button onclick="removeAttachment(${idx})" class="text-zinc-400 hover:text-red-500 ml-1">✕</button>
-            </div>
-          `;
-        }
-      }).join('');
-    }
+      baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+      if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
 
-    function removeAttachment(index) {
-      pendingAttachments.splice(index, 1);
-      renderAttachmentPreviews();
-    }
+      const chunkSize = 4; 
+      let successCount = 0;
 
-    // ==========================================
-    // 阶段 1：AI 架构师深度思考与精准寻址 (CoT)
-    // ==========================================
-    async function planTargetFilesWithAI(userPrompt, baseUrl, apiKey, model) {
-      const allFileKeys = Object.keys(virtualFiles);
-      if (allFileKeys.length <= 2) {
-        return { target_files: allFileKeys, reason: "项目规模小，直接全链路协同加载" };
-      }
+      for (let i = 0; i < allFiles.length; i += chunkSize) {
+        const chunk = allFiles.slice(i, i + chunkSize);
+        setLoading(true, `⚡ 正在为第 ${i + 1} 到 ${Math.min(i + chunkSize, allFiles.length)} 个文件生成血缘图谱 (共 ${allFiles.length} 个)...`);
 
-      const mapStr = JSON.stringify(projectMap, null, 2);
+        let filesPayload = "";
+        chunk.forEach(f => { filesPayload += `【文件路径: ${f}】\n\`\`\`\n${virtualFiles[f]}\n\`\`\`\n\n`; });
 
-      // 🌟 核心改进 1：强迫 AI 进行 Chain of Thought 推理
-      const plannerSystemPrompt = `你是一个顶级前端架构师。
-你的任务是：根据用户的修改需求，仔细比对【项目架构全局功能图谱与关键词】，决策出本次修改必须涉及的核心目标文件。
-【🚨 寻址铁律】：
-1. 必须先分析用户的需求属于哪个业务模块（如：登录、导航栏、图表等）。
-2. 在图谱中寻找与该业务模块完全对应的文件路径（注意匹配 ID 和 Class）。
-3. 如果涉及样式修改，必须带上对应的 CSS 文件；如果涉及逻辑，必须带上 JS 文件。
+        const prompt = `请深度解剖以上文件源码。为每个文件撰写一份显微镜级的白话功能档案。
+【🚨 致命要求】：输出纯 JSON，每个文件的描述必须严格包含以下三个段落：
+1. 💡功能：(大白话描述该文件的核心作用与包含的HTML/UI)
+2. 📦抛出：(该文件里定义了哪些核心 JS 函数、全局变量、ID 等供外部查找)
+3. 🔗依赖：(该文件引用了工程中的哪些其他文件)
 
-请严格以 JSON 格式输出，包含 thinking 和 target_files 两个字段，不要包含其他 Markdown 标记：
+严格以纯 JSON 格式输出，形如：
 {
-  "thinking": "用户提到了xxx，我在图谱中看到 yyy 文件负责这个，且涉及样式，所以我还需要 zzz 文件...",
-  "target_files": ["文件路径1", "文件路径2"]
+  "index.html": "💡功能：主页面骨架，包含订单表格。 📦抛出：无。 🔗依赖：js/api.js",
+  "js/api.js": "💡功能：网络接口封装。 📦抛出：fetchData()。 🔗依赖：无"
 }`;
 
-      const plannerUserPrompt = `【项目架构全局图谱与硬核特征检索关键词】：\n${mapStr}\n\n【用户提出的修改需求】：${userPrompt}\n请严格思考并输出决策 JSON。`;
+        try {
+          const res = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+              model: model,
+              messages: [
+                { role: "system", content: "你是一个资深全栈架构师，只输出纯 JSON，不要带 markdown 标记。" },
+                { role: "user", content: filesPayload + prompt }
+              ],
+              temperature: 0.1
+            })
+          });
 
-      let selectedTargets = [];
-      let decisionReason = "AI 架构师基于语义决策锁定";
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          let content = data.choices[0].message.content.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+          const parsed = JSON.parse(content);
 
+          if (typeof parsed === 'object' && parsed !== null) {
+            projectMap = { ...projectMap, ...parsed };
+            successCount += Object.keys(parsed).length;
+            persistAllData(false);
+            renderProjectMapUI();
+          }
+        } catch (err) {
+          console.error(`处理分批 ${i} 时报错:`, err);
+          showToast(`❌ 第 ${i+1} 批生成报错，请重试`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setLoading(false);
+      showToast(`🎉 初始化完成！成功生成 ${successCount} 个文件的血缘档案！`);
+    }
+
+    function smartLocalRadarMatch(userPrompt) {
+      const allFiles = Object.keys(virtualFiles);
+      if (allFiles.length <= 2) return allFiles;
+      
+      const matchedFiles = new Set();
+      const promptWords = userPrompt.toLowerCase().match(/[\u4e00-\u9fa5]{2,}|[a-z0-9]+/g) || [];
+      
+      for (const [filePath, desc] of Object.entries(projectMap)) {
+        const descLower = (desc || '').toLowerCase();
+        for (const w of promptWords) {
+          if (descLower.includes(w) && w.length > 1) { 
+            matchedFiles.add(filePath); 
+            break; 
+          }
+        }
+      }
+
+      if (matchedFiles.size === 0) {
+        allFiles.slice(0, 3).forEach(f => matchedFiles.add(f));
+      }
+      return Array.from(matchedFiles).slice(0, 5);
+    }
+
+    async function planTargetFilesWithAI(userPrompt, baseUrl, apiKey, model) {
+      const localMatched = smartLocalRadarMatch(userPrompt);
+      const allFileKeys = Object.keys(virtualFiles);
+      if (allFileKeys.length <= 2) return { target_files: allFileKeys, reason: "小项目全量加载" };
+
+      const mapStr = JSON.stringify(projectMap, null, 2);
+      const plannerSystemPrompt = `你是一个顶级的全栈工程架构师，你的任务是“精准寻址”。
+请根据用户的【大白话需求】以及【带依赖关系的档案图谱】，顺藤摸瓜找出【所有】需要修改的文件。
+【思考逻辑】：
+1. 用户的需求要在哪个文件里改 UI？
+2. 用户的需求是否涉及数据流或业务逻辑的变动？如果有，顺着“🔗依赖”或“📦抛出”找出对应的 JS/CSS 文件。
+3. 宁可多找相关文件，绝不漏找！
+【严格输出 JSON 格式】：
+{
+  "thought_process": "推理过程...",
+  "target_files": ["文件路径1", "文件路径2"]
+}`;
+      
       try {
         const res = await fetch(`${baseUrl}/chat/completions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
           body: JSON.stringify({
             model: model,
-            messages: [
-              { role: "system", content: plannerSystemPrompt },
-              { role: "user", content: plannerUserPrompt }
-            ],
+            messages: [{ role: "system", content: plannerSystemPrompt }, { role: "user", content: `档案:\n${mapStr}\n\n需求: ${userPrompt}` }],
             temperature: 0.1
           })
         });
-
         if (res.ok) {
           const data = await res.json();
-          let content = data.choices[0].message.content.trim();
-          content = content.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-          const parsed = JSON.parse(content);
-
-          if (Array.isArray(parsed.target_files) && parsed.target_files.length > 0) {
-            selectedTargets = parsed.target_files.filter(f => virtualFiles[f]);
-            decisionReason = parsed.thinking || decisionReason;
+          let c = data.choices[0].message.content.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+          const parsed = JSON.parse(c);
+          
+          if (parsed.thought_process) {
+            console.log("🧠 AI 寻址推理过程：", parsed.thought_process);
           }
-        }
-      } catch (err) {
-        console.warn('AI 架构师决策回退:', err);
-      }
 
-      if (selectedTargets.length === 0) {
-        selectedTargets = ['index.html', allFileKeys.find(f => f.endsWith('.js')), allFileKeys.find(f => f.endsWith('.css'))].filter(Boolean);
-      }
-
-      return {
-        target_files: Array.from(new Set(selectedTargets)).slice(0, 5),
-        reason: decisionReason
-      };
-    }
-
-    // ==========================================
-    // 后台自动自愈补齐被改动文件的硬核指纹
-    // ==========================================
-    async function autoRefreshKeywordsForFiles(filePaths, baseUrl, apiKey, model) {
-      for (const filePath of filePaths) {
-        const code = virtualFiles[filePath];
-        if (!code) continue;
-
-        try {
-          // 🌟 核心改进 2：强制要求提取底层指纹 (ID/Class/中文字符)
-          const prompt = `请深度研读以下前端文件的源码，为其提炼出类似于“字典索引”的详尽【检索关键词】。
-为了让后续的 AI 能精准找到该文件，你的关键词必须包含该文件独有的“硬特征”：
-1. 核心的 DOM 元素的 ID 或 Class 名（如 #login-btn, .modal-wrap）。
-2. 核心的 JavaScript 函数名、变量名（如 fetchData(), userState）。
-3. 页面上显示的特殊中文文本内容（如 "点击注册"、"确认提交"）。
-
-必须严格按照单行格式输出，不要其他废话：
-【检索关键词: #id名, .class名, 函数名, 页面中文文本, ...】该文件具体负责的业务逻辑说明。
-
-文件路径：${filePath}
-最新源码如下：
-\`\`\`
-${code}
-\`\`\``;
-
-          const res = await fetch(`${baseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-              model: model,
-              messages: [{ role: "user", content: prompt }],
-              temperature: 0.1
-            })
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            const extracted = data.choices[0].message.content.trim();
-            if (extracted) {
-              projectMap[filePath] = extracted;
-              persistAllData();
-              renderProjectMapUI();
+          if (Array.isArray(parsed.target_files)) {
+            const valid = parsed.target_files.filter(f => virtualFiles[f]);
+            if (valid.length > 0) {
+              return { target_files: Array.from(new Set([...valid, ...localMatched])).slice(0, 5), reason: "AI思维链精准锁定" };
             }
           }
-        } catch (e) {
-          console.warn(`[自动关键词更新] ${filePath} 自愈补齐跳过:`, e);
         }
+      } catch (e) {
+        console.error("寻址解析失败", e);
       }
+      return { target_files: localMatched, reason: "本地雷达命中" };
     }
 
-    // ==========================================
-    // 阶段 2：定向抓取源码并进行微创代码生成
-    // ==========================================
     async function sendMessage() {
       const input = document.getElementById('promptInput');
       const prompt = input.value.trim();
-      
       if (!prompt && pendingAttachments.length === 0) return;
 
       const apiKey = document.getElementById('apiKey').value.trim();
@@ -748,22 +648,19 @@ ${code}
       const model = selectedModel || document.getElementById('customModelInput').value.trim();
 
       if (!baseUrl || !apiKey || !model) {
-        showToast('请先在底部【API】填入 Base URL、Key 和模型名称');
+        showToast('请先配置 API 参数');
         switchBottomTab('api');
         return;
       }
 
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
-      if (!baseUrl.endsWith('/v1')) {
-        baseUrl = baseUrl + '/v1';
-      }
+      if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
 
       input.value = '';
       const currentAttachCopies = [...pendingAttachments];
       pendingAttachments = [];
       renderAttachmentPreviews();
 
-      // 记录单步回滚快照
       lastSnapshotState = {
         files: JSON.parse(JSON.stringify(virtualFiles)),
         projectMap: JSON.parse(JSON.stringify(projectMap)),
@@ -771,129 +668,80 @@ ${code}
         time: new Date().toLocaleTimeString()
       };
 
-      chatHistory.push({
-        role: "user",
-        content: prompt || '（用户请求诊断修复）',
-        attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })),
-        preState: lastSnapshotState
-      });
+      chatHistory.push({ role: "user", content: prompt || '（用户上传参考文件）', attachments: currentAttachCopies.map(a => ({ name: a.name, isImage: a.isImage, size: a.size })), preState: lastSnapshotState });
       renderChatMessages();
-
       persistAllData();
       updateRollbackUI();
 
-      // 🌟 第一阶段：AI 架构师深度思考并精准决策
-      setLoading(true, `🧠 AI 架构师正在思考关联性并锁定底层文件...`);
-      
+      setLoading(true, `🔍 大白话雷达正在比对显微镜档案...`);
+
       let decision = { target_files: [], reason: "" };
       if (Object.keys(virtualFiles).length > 0) {
         decision = await planTargetFilesWithAI(prompt, baseUrl, apiKey, model);
       }
 
-      const targetNotice = decision.target_files.length > 0 
-        ? `🎯 锁定协同文件: ${decision.target_files.join(', ')}` 
-        : `正在从零创建项目`;
+      setLoading(true, `正在联动修改并同步更新详尽档案...`);
 
-      // 🌟 第二阶段：协同定向编写与微创手术
-      setLoading(true, `正在微创编码: ${targetNotice}...`);
-
-      const mapStr = Object.keys(projectMap).length > 0 
-        ? JSON.stringify(projectMap, null, 2) 
-        : '项目全新创建中';
-
+      const mapStr = Object.keys(projectMap).length > 0 ? JSON.stringify(projectMap, null, 2) : '全新项目';
       let targetedFilesPayload = "";
       if (decision.target_files.length > 0) {
-        targetedFilesPayload = `【AI 架构师已精准决策锁定以下相关联的源文件（AI推理依据：${decision.reason}，请严格对照进行增量修改）：】\n`;
+        targetedFilesPayload = `【系统已锁定关联源文件】：\n`;
         decision.target_files.forEach(tp => {
-          if (virtualFiles[tp]) {
-            targetedFilesPayload += `<target_file path="${tp}">\n${virtualFiles[tp]}\n</target_file>\n\n`;
-          }
+          if (virtualFiles[tp]) targetedFilesPayload += `<target_file path="${tp}">\n${virtualFiles[tp]}\n</target_file>\n\n`;
         });
       }
 
       let attachedCodeContext = '';
       const imagePayloads = [];
-
       currentAttachCopies.forEach(att => {
-        if (att.isImage) {
-          imagePayloads.push({
-            type: "image_url",
-            image_url: { url: att.content }
-          });
-        } else {
-          attachedCodeContext += `\n\n【用户上传的代码参考文件: ${att.name}】:\n\`\`\`\n${att.content}\n\`\`\``;
-        }
+        if (att.isImage) imagePayloads.push({ type: "image_url", image_url: { url: att.content } });
+        else attachedCodeContext += `\n\n【参考文件: ${att.name}】:\n\`\`\`\n${att.content}\n\`\`\``;
       });
 
-      const fullTextPrompt = `【项目架构硬核特征指纹图谱】:\n${mapStr}\n\n${targetedFilesPayload}${attachedCodeContext}【用户最新修改指令】: ${prompt}\n【核心规范要求】：必须受防破坏铁律与 Scoped CSS 命名空间严格约束！完整输出被修改或新建的文件 <file path="...">，并在末尾更新 <project_map>！`;
-
-      let userApiPayload;
-      if (imagePayloads.length > 0) {
-        userApiPayload = [
-          { type: "text", text: fullTextPrompt },
-          ...imagePayloads
-        ];
-      } else {
-        userApiPayload = fullTextPrompt;
-      }
+      const fullTextPrompt = `【显微镜级项目档案】:\n${mapStr}\n\n${targetedFilesPayload}${attachedCodeContext}【用户大白话需求】: ${prompt}`;
+      let userApiPayload = imagePayloads.length > 0 ? [{ type: "text", text: fullTextPrompt }, ...imagePayloads] : fullTextPrompt;
 
       const apiMessages = [
         { role: "system", content: SYSTEM_PROMPT },
-        ...chatHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content })),
+        ...chatHistory.slice(0, -1).map(m => {
+          let safeContent = m.content;
+          if (m.role === 'assistant') {
+            safeContent = safeContent.replace(/<file[\s\S]*?<\/file>/gi, '\n[代码已更新至工程，此处省略]\n')
+                                     .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '\n[图谱已更新，此处省略]\n');
+          }
+          return { role: m.role, content: safeContent };
+        }),
         { role: "user", content: userApiPayload }
       ];
 
       try {
         const res = await fetch(`${baseUrl}/chat/completions`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: apiMessages,
-            temperature: 0.2
-          })
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({ model: model, messages: apiMessages, temperature: 0.2 })
         });
 
-        if (!res.ok) {
-          const errDetail = await res.text();
-          throw new Error(`[HTTP ${res.status}] ${errDetail || res.statusText}`);
-        }
-
+        if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
-        if (!data.choices || !data.choices[0]) {
-          throw new Error(`中转站返回了异常数据格式: ${JSON.stringify(data)}`);
-        }
-
         const aiReply = data.choices[0].message.content;
 
         const { updated, hasTruncation } = parseFilesFromOutputSafe(aiReply);
-        const mappedFiles = parseProjectMapFromOutput(aiReply);
+        parseProjectMapFromOutput(aiReply);
 
         chatHistory.push({ role: "assistant", content: aiReply, updatedFiles: updated });
         renderChatMessages();
 
         if (hasTruncation) {
-          showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
+          showToast('⚠️ 输出被截断，已拦截保护！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 文件已定向更新 (${updated.join(', ')})！`);
-
-          const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
-          if (unmappedFiles.length > 0) {
-            autoRefreshKeywordsForFiles(unmappedFiles, baseUrl, apiKey, model);
-          }
+          showToast(`✨ 修改成功！已同步显微镜档案与文件: ${updated.join(', ')}`);
         }
         persistAllData();
         updateRollbackUI();
 
       } catch (err) {
-        chatHistory.push({ 
-          role: "system", 
-          content: `❌ 请求失败原因分析：\n${err.message}\n\n💡 检查排查：\n1. API Base URL 是否为 https://xxx.com/v1\n2. 该中转站渠道的模型名是否可用\n3. 若显示 Failed to fetch，说明中转站服务器未开启浏览器跨域(CORS)支持。` 
-        });
+        chatHistory.push({ role: "system", content: `❌ 失败原因：\n${err.message}` });
         renderChatMessages();
         persistAllData();
         updateRollbackUI();
@@ -902,29 +750,18 @@ ${code}
       }
     }
 
-    // ==========================================
-    // 智能瘦身拆分与关键词提取
-    // ==========================================
     function triggerSlimFile(filePath) {
       const code = virtualFiles[filePath];
-      if (!code) {
-        showToast('该文件暂无源码内容');
-        return;
-      }
-
+      if (!code) return showToast('文件不存在');
       currentSlimmingFile = filePath;
-      const lines = code.split('\n').length;
-      document.getElementById('slimModalTargetLabel').innerText = `${filePath} (${lines} 行代码)`;
-
+      document.getElementById('slimModalTargetLabel').innerText = `${filePath} (${code.split('\n').length} 行代码)`;
       const modal = document.getElementById('slimConfirmModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
     }
 
     function closeSlimModal() {
       const modal = document.getElementById('slimConfirmModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
       currentSlimmingFile = null;
     }
 
@@ -932,16 +769,8 @@ ${code}
       if (!currentSlimmingFile) return;
       const target = currentSlimmingFile;
       closeSlimModal();
-
       switchBottomTab('maker');
-
-      const slimPrompt = `【专项重构任务：对超大文件 ${target} 进行智能瘦身与模块化拆分解耦】
-请深度研读 ${target} 的源码，将其内部各个独立的业务模块/弹窗/抽屉彻底抽离封装为独立的组件文件（如 \`js/components/xxx.js\`、\`css/xxx.css\`）：
-1. 大幅精简 ${target} 本身，只保留最核心干净的骨架与主干挂载逻辑。
-2. 确保拆分后的各子模块在单页 SPA 中依然 100% 正常运行，点击事件与样式完美生效！
-3. 为所有新拆分出的文件在 <project_map> 里生成详细的【包含 ID/Class 的硬核特征检索关键词】！`;
-
-      document.getElementById('promptInput').value = slimPrompt;
+      document.getElementById('promptInput').value = `请对超大文件 ${target} 进行智能瘦身拆分，抽离独立子模块并更新详尽档案！`;
       sendMessage();
     }
 
@@ -961,7 +790,6 @@ ${code}
       const fileRegex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
       let match;
       const matchedPaths = new Set();
-
       while ((match = fileRegex.exec(text)) !== null) {
         let path = match[1].trim().replace(/^\/+/, '');
         let content = match[2].trim();
@@ -973,7 +801,6 @@ ${code}
       const unclosedMatch = /<file\s+path=["']([^"']+)["']>([\s\S]*)$/i.exec(text);
       if (unclosedMatch && !text.endsWith('</file>') && !matchedPaths.has(unclosedMatch[1].trim())) {
         hasTruncation = true;
-        console.warn(`[安全拦截] 文件 ${unclosedMatch[1]} 输出未闭合，已拒绝覆盖！`);
       }
 
       refreshUIElements();
@@ -982,190 +809,175 @@ ${code}
 
     async function triggerExtractKeywords(filePath) {
       const code = virtualFiles[filePath];
-      if (!code) {
-        showToast('该文件暂无源码内容');
-        return;
-      }
+      if (!code) return showToast('暂无源码');
 
       const apiKey = document.getElementById('apiKey').value.trim();
       let baseUrl = document.getElementById('apiBaseUrl').value.trim();
       const model = selectedModel || document.getElementById('customModelInput').value.trim();
 
-      if (!baseUrl || !apiKey || !model) {
-        showToast('请先配置好 API 参数');
-        switchBottomTab('api');
-        return;
-      }
-
+      if (!baseUrl || !apiKey || !model) { showToast('请先配置 API 参数'); switchBottomTab('api'); return; }
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
       if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
 
       currentEditingFile = filePath;
-      document.getElementById('keywordModalFilePath').innerText = `${filePath} (${code.split('\n').length} 行代码)`;
+      document.getElementById('keywordModalFilePath').innerText = `显微镜档案：${filePath}`;
       document.getElementById('keywordModalLoading').classList.remove('hidden');
       document.getElementById('keywordModalBody').classList.add('hidden');
       document.getElementById('saveKeywordBtn').disabled = true;
 
       const modal = document.getElementById('keywordEditModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
 
       try {
-        const prompt = `请深度研读以下前端文件的源码，为其提炼出类似于“字典索引”的详尽【检索关键词】。
-为了让后续的 AI 能精准找到该文件，你的关键词必须包含该文件独有的“硬特征”：
-1. 核心的 DOM 元素的 ID 或 Class 名（如 #login-btn, .modal-wrap）。
-2. 核心的 JavaScript 函数名、变量名（如 fetchData(), userState）。
-3. 页面上显示的特殊中文文本内容（如 "点击注册"、"确认提交"）。
-
-必须严格按照如下单行格式输出，禁止任何多余前缀：
-【检索关键词: #id名, .class名, 函数名, 页面中文文本, ...】该文件具体负责的功能与逻辑详细说明。
-
-文件路径：${filePath}
-源码内容如下：
-\`\`\`
-${code}
-\`\`\``;
-
+        const prompt = `请为以下文件撰写一份显微镜级别的详尽功能说明（严格包含以下三个段落：\n1. 💡功能：描述作用\n2. 📦抛出：定义了哪些函数变量\n3. 🔗依赖：引入了哪些文件）：\n\n文件：${filePath}\n\`\`\`\n${code}\n\`\`\``;
         const res = await fetch(`${baseUrl}/chat/completions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            model: model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.1
-          })
+          body: JSON.stringify({ model: model, messages: [{ role: "user", content: prompt }], temperature: 0.1 })
         });
-
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
-        const extracted = data.choices[0].message.content.trim();
-
-        document.getElementById('keywordEditTextarea').value = extracted;
+        document.getElementById('keywordEditTextarea').value = data.choices[0].message.content.trim();
         document.getElementById('keywordModalLoading').classList.add('hidden');
         document.getElementById('keywordModalBody').classList.remove('hidden');
         document.getElementById('saveKeywordBtn').disabled = false;
-
       } catch (err) {
-        document.getElementById('keywordEditTextarea').value = projectMap[filePath] || `【检索关键词: ${filePath}】负责基础功能模块`;
+        document.getElementById('keywordEditTextarea').value = projectMap[filePath] || '💡功能：核心模块\n📦抛出：无\n🔗依赖：无';
         document.getElementById('keywordModalLoading').classList.add('hidden');
         document.getElementById('keywordModalBody').classList.remove('hidden');
         document.getElementById('saveKeywordBtn').disabled = false;
-        showToast(`AI 提取失败: ${err.message}，已载入现有描述供手动编辑`);
       }
     }
 
     function saveCustomKeywords() {
       if (!currentEditingFile) return;
       const text = document.getElementById('keywordEditTextarea').value.trim();
-      if (!text) {
-        showToast('指纹说明不能为空');
-        return;
-      }
-
+      if (!text) return showToast('内容不能为空');
       projectMap[currentEditingFile] = text;
       persistAllData(true);
       renderProjectMapUI();
       closeKeywordModal();
-      showToast(`✨ ${currentEditingFile} 专属指纹关键词已保存生效！`);
+      showToast('✨ 详尽档案保存成功！');
     }
 
     function closeKeywordModal() {
       const modal = document.getElementById('keywordEditModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
       currentEditingFile = null;
     }
 
-    // ==========================================
-    // 单步撤销回滚
-    // ==========================================
-    function rollbackLastTurn() {
-      if (!lastSnapshotState) {
-        showToast('暂无可回滚的上一轮状态');
+    function parseProjectMapFromOutput(text) {
+      const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
+      if (mapMatch && mapMatch[1]) {
+        try {
+          let jsonStr = mapMatch[1].trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+          const parsed = JSON.parse(jsonStr);
+          if (typeof parsed === 'object' && parsed !== null) {
+            projectMap = { ...projectMap, ...parsed };
+            for (const p in projectMap) {
+              if (!virtualFiles[p]) delete projectMap[p];
+            }
+            refreshUIElements();
+            renderProjectMapUI();
+          }
+        } catch (e) {}
+      }
+    }
+
+    function renderProjectMapUI() {
+      const container = document.getElementById('projectMapContainer');
+      const totalBadge = document.getElementById('totalLinesBadge');
+      const allPaths = Array.from(new Set([...Object.keys(virtualFiles), ...Object.keys(projectMap)]));
+      
+      if (allPaths.length === 0) {
+        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-4 text-center">暂无数据</div>';
+        if (totalBadge) totalBadge.innerText = '0 个文件 · 0 行代码';
         return;
       }
 
-      if (confirm(`确认撤回最后一轮修改？（将恢复至 ${lastSnapshotState.time} 的代码与文件状态）`)) {
+      let totalLinesCount = 0;
+      container.innerHTML = allPaths.map(path => {
+        const content = virtualFiles[path] || '';
+        const lines = content ? content.split('\n').length : 0;
+        totalLinesCount += lines;
+        const desc = projectMap[path] || '💡功能：未归档模块（可点击上方一键生成详尽档案）';
+        const isDeleted = !virtualFiles[path];
+        const isBloated = lines >= 150;
+        const fileExt = path.split('.').pop().toLowerCase();
+        const icon = fileExt === 'html' ? '📄' : fileExt === 'css' ? '🎨' : fileExt === 'js' ? '⚡' : '📁';
+
+        const formattedDesc = escapeHtml(desc)
+          .replace(/💡功能：/g, '<strong class="text-indigo-600">💡功能：</strong>')
+          .replace(/📦抛出：/g, '<br><strong class="text-amber-600">📦抛出：</strong>')
+          .replace(/🔗依赖：/g, '<br><strong class="text-emerald-600">🔗依赖：</strong>');
+
+        return `
+          <div class="bg-white border ${isBloated ? 'border-amber-300 shadow-xs' : 'border-zinc-200'} rounded-2xl p-4 space-y-2.5 transition hover:border-zinc-300">
+            <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+              <div class="flex items-center space-x-1.5 min-w-0 pr-2">
+                <span class="text-sm shrink-0">${icon}</span>
+                <span class="font-mono font-bold text-xs text-zinc-900 truncate ${isDeleted ? 'line-through opacity-40' : ''}">${escapeHtml(path)}</span>
+              </div>
+              <span class="text-[11px] font-mono font-bold shrink-0 ${isBloated ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'} px-2 py-0.5 rounded-md">
+                ${lines} 行代码
+              </span>
+            </div>
+            <p class="text-zinc-700 text-xs leading-relaxed bg-zinc-50/80 p-2.5 rounded-xl border border-zinc-100">${formattedDesc}</p>
+            ${!isDeleted ? `
+              <div class="flex items-center justify-end space-x-2 pt-1 border-t border-zinc-50">
+                ${isBloated ? `
+                  <button onclick="triggerSlimFile('${escapeHtml(path)}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[11px] font-bold transition">
+                    <span>✂️ 智能瘦身拆分</span>
+                  </button>
+                ` : ''}
+                <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2.5 py-1 bg-zinc-50 hover:bg-indigo-50 text-indigo-700 border border-zinc-200 rounded-lg text-[11px] font-semibold transition">
+                  <span>✨ 重新深度解剖此文件</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      if (totalBadge) totalBadge.innerText = `${Object.keys(virtualFiles).length} 个文件 · 共 ${totalLinesCount} 行代码`;
+    }
+
+    function rollbackLastTurn() {
+      if (!lastSnapshotState) return showToast('暂无记录');
+      if (confirm(`确认撤回？`)) {
         virtualFiles = JSON.parse(JSON.stringify(lastSnapshotState.files));
         projectMap = JSON.parse(JSON.stringify(lastSnapshotState.projectMap));
-        sandboxStorage = JSON.parse(JSON.stringify(lastSnapshotState.sandboxStorage));
-
-        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'assistant') {
-          chatHistory.pop();
-        }
-        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-          chatHistory.pop();
-        }
-
+        sandboxStorage = JSON.parse(JSON.stringify(lastSnapshotState.sandboxStorage || {}));
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'assistant') chatHistory.pop();
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') chatHistory.pop();
         lastSnapshotState = null;
-
-        renderChatMessages();
-        refreshPreview();
-        refreshUIElements();
-        persistAllData();
-        updateRollbackUI();
-
-        showToast('↩️ 已成功撤销最后一轮的所有文件改动！');
+        renderChatMessages(); refreshPreview(); refreshUIElements(); persistAllData(); updateRollbackUI();
+        showToast('↩️ 已撤销！');
       }
     }
 
     function updateRollbackUI() {
       const quickBtn = document.getElementById('quickRollbackBtn');
       const mainBtn = document.getElementById('mainRollbackBtn');
-
       if (lastSnapshotState) {
-        if (quickBtn) {
-          quickBtn.disabled = false;
-          quickBtn.className = "px-2 py-0.5 rounded text-xs font-semibold transition bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs hover:bg-indigo-100";
-        }
-        if (mainBtn) {
-          mainBtn.disabled = false;
-          mainBtn.className = "px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-xl border border-indigo-200 transition shadow-2xs";
-          mainBtn.innerText = `↩️ 撤回最后一轮修改 (${lastSnapshotState.time})`;
-        }
+        if (quickBtn) { quickBtn.disabled = false; quickBtn.className = "px-2 py-0.5 rounded text-xs font-semibold transition bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs hover:bg-indigo-100"; }
+        if (mainBtn) { mainBtn.disabled = false; mainBtn.className = "px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-xl border border-indigo-200 transition shadow-2xs"; mainBtn.innerText = `↩️ 撤回最后一轮修改 (${lastSnapshotState.time})`; }
       } else {
-        if (quickBtn) {
-          quickBtn.disabled = true;
-          quickBtn.className = "px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed";
-        }
-        if (mainBtn) {
-          mainBtn.disabled = true;
-          mainBtn.className = "px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed";
-          mainBtn.innerText = `↩️ 撤回最后一轮修改 (无记录)`;
-        }
+        if (quickBtn) { quickBtn.disabled = true; quickBtn.className = "px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed"; }
+        if (mainBtn) { mainBtn.disabled = true; mainBtn.className = "px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed"; mainBtn.innerText = `↩️ 撤回最后一轮修改 (无记录)`; }
       }
     }
 
-    // ==========================================
-    // 全量 JSON 导出与恢复
-    // ==========================================
     function exportProjectJson() {
-      const payload = {
-        app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "18.1",
-        exportedAt: new Date().toLocaleString(),
-        virtualFiles: virtualFiles,
-        projectMap: projectMap,
-        chatHistory: chatHistory,
-        sandboxStorage: sandboxStorage,
-        apiConfig: {
-          baseUrl: document.getElementById('apiBaseUrl').value.trim(),
-          apiKey: document.getElementById('apiKey').value.trim(),
-          model: selectedModel || document.getElementById('customModelInput').value.trim()
-        },
-        remoteModels: remoteModels,
-        selectedModel: selectedModel || document.getElementById('customModelInput').value.trim()
-      };
-
+      const payload = { app: "AI_WEB_STUDIO_MICROSCOPIC", version: "18.6", virtualFiles, projectMap, chatHistory, sandboxStorage, remoteModels, selectedModel };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      saveAs(blob, `ai-studio-full-backup-${Date.now()}.json`);
-      showToast('🎉 全量工程 JSON 已下载！');
+      saveAs(blob, `ai-studio-backup-${Date.now()}.json`);
+      showToast('🎉 导出成功！');
     }
 
     function importProjectJson(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (ev) => {
         try {
@@ -1178,553 +990,296 @@ ${code}
             selectedModel = data.selectedModel || '';
             sandboxStorage = data.sandboxStorage || {};
             lastSnapshotState = null;
-
-            if (data.apiConfig) {
-              document.getElementById('apiBaseUrl').value = data.apiConfig.baseUrl || '';
-              document.getElementById('apiKey').value = data.apiConfig.apiKey || '';
-              document.getElementById('customModelInput').value = data.apiConfig.model || '';
-              selectedModel = data.apiConfig.model || '';
-            }
-
-            renderChatMessages();
-            refreshPreview();
-            refreshUIElements();
-            persistAllData();
-            updateRollbackUI();
-            showToast('🎉 全量备份恢复成功！');
-            switchBottomTab('preview');
+            renderChatMessages(); refreshPreview(); refreshUIElements(); persistAllData(); updateRollbackUI();
+            showToast('🎉 恢复成功！'); switchBottomTab('preview');
           }
-        } catch (err) {
-          alert('导入失败：无效的 JSON 备份文件格式');
-        }
+        } catch (err) { alert('导入失败'); }
       };
       reader.readAsText(file);
     }
 
-    // ==========================================
-    // API 设置与模型拉取
-    // ==========================================
     function saveApiSettings() {
       const customModel = document.getElementById('customModelInput').value.trim();
-      if (customModel) {
-        selectedModel = customModel;
-      }
-      persistAllData(true);
-      refreshUIElements();
-      showToast('中转站配置已保存生效！');
+      if (customModel) selectedModel = customModel;
+      persistAllData(true); refreshUIElements(); showToast('API 设置已生效！');
     }
 
     async function fetchRemoteModels() {
       let baseUrl = document.getElementById('apiBaseUrl').value.trim();
       const apiKey = document.getElementById('apiKey').value.trim();
       const btn = document.getElementById('fetchModelsBtn');
-
-      if (!baseUrl || !apiKey) {
-        showToast('请先输入 Base URL 和 API Key');
-        return;
-      }
-
+      if (!baseUrl || !apiKey) return showToast('请先输入配置');
       baseUrl = baseUrl.replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
       if (!baseUrl.endsWith('/v1')) baseUrl = baseUrl + '/v1';
-
-      btn.disabled = true;
-      btn.innerText = '拉取中...';
-
+      btn.disabled = true; btn.innerText = '拉取中...';
       try {
-        const res = await fetch(`${baseUrl}/models`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
+        const res = await fetch(`${baseUrl}/models`, { method: 'GET', headers: { 'Authorization': `Bearer ${apiKey}` } });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        
-        let list = [];
-        if (Array.isArray(data.data)) list = data.data.map(m => m.id);
-        else if (Array.isArray(data.models)) list = data.models.map(m => m.name || m.id);
-
-        if (list.length > 0) {
-          remoteModels = Array.from(new Set([...list]));
-          showToast(`🎉 成功拉取 ${list.length} 个模型！`);
-          renderModelsGrid();
-          persistAllData();
-        } else {
-          showToast('中转站返回了空列表，可手动输入模型名');
-        }
-      } catch (err) {
-        showToast(`❌ 拉取失败: ${err.message}`);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = '🔄 拉取中转站模型列表';
-      }
+        let list = Array.isArray(data.data) ? data.data.map(m => m.id) : (Array.isArray(data.models) ? data.models.map(m => m.name || m.id) : []);
+        if (list.length > 0) { remoteModels = Array.from(new Set(list)); showToast(`🎉 成功拉取 ${list.length} 个模型！`); renderModelsGrid(); persistAllData(); }
+      } catch (err) { showToast(`❌ 拉取失败: ${err.message}`); }
+      finally { btn.disabled = false; btn.innerText = '🔄 拉取中转站模型列表'; }
     }
 
     function renderModelsGrid(filterText = '') {
       const grid = document.getElementById('modelsGrid');
       const filtered = remoteModels.filter(m => m.toLowerCase().includes(filterText.toLowerCase()));
       document.getElementById('modelCountLabel').innerText = filtered.length;
-
-      if (filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">暂无匹配模型，可在上方手动输入</div>';
-        return;
-      }
-
+      if (filtered.length === 0) { grid.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">暂无匹配模型</div>'; return; }
       grid.innerHTML = filtered.map(m => `
-        <div onclick="selectModel('${m}')" class="p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${
-          selectedModel === m ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200'
-        }">
+        <div onclick="selectModel('${m}')" class="p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${selectedModel === m ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white hover:bg-zinc-50 text-zinc-800 border-zinc-200'}">
           <span class="font-mono font-bold text-xs truncate">${escapeHtml(m)}</span>
           ${selectedModel === m ? '<span class="text-xs text-emerald-400">✓</span>' : ''}
         </div>
       `).join('');
     }
 
-    function filterModels() {
-      renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
-    }
+    function filterModels() { renderModelsGrid(document.getElementById('modelSearchInput').value.trim()); }
+    function selectModel(m) { selectedModel = m; document.getElementById('customModelInput').value = m; refreshUIElements(); renderModelsGrid(document.getElementById('modelSearchInput').value.trim()); showToast(`已选: ${m}`); persistAllData(); }
 
-    function selectModel(modelName) {
-      selectedModel = modelName;
-      document.getElementById('customModelInput').value = modelName;
-      refreshUIElements();
-      renderModelsGrid(document.getElementById('modelSearchInput').value.trim());
-      showToast(`已选择模型: ${modelName}`);
-      persistAllData();
-    }
-
-    // ==========================================
-    // 寻址图谱渲染
-    // ==========================================
-    function parseProjectMapFromOutput(text) {
-      const mapMatch = /<project_map>([\s\S]*?)<\/project_map>/i.exec(text);
-      if (mapMatch && mapMatch[1]) {
-        try {
-          let jsonStr = mapMatch[1].trim();
-          jsonStr = jsonStr.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-          const parsed = JSON.parse(jsonStr);
-          projectMap = { ...projectMap, ...parsed };
-          refreshUIElements();
-          renderProjectMapUI();
-          return Object.keys(parsed);
-        } catch (e) {
-          console.warn('解析 project_map 出错:', e);
-        }
-      }
-      return [];
-    }
-
-    function renderProjectMapUI() {
-      const container = document.getElementById('projectMapContainer');
-      const totalBadge = document.getElementById('totalLinesBadge');
-      
-      const allPaths = Array.from(new Set([...Object.keys(virtualFiles), ...Object.keys(projectMap)]));
-      
-      if (allPaths.length === 0) {
-        container.innerHTML = '<div class="text-zinc-400 text-xs italic py-4 text-center">暂无数据，AI 生成项目后将在此展示文件与关键词提取功能。</div>';
-        if (totalBadge) totalBadge.innerText = '0 个文件 · 0 行代码';
-        return;
-      }
-
-      let totalLinesCount = 0;
-
-      container.innerHTML = allPaths.map(path => {
-        const content = virtualFiles[path] || '';
-        const lines = content ? content.split('\n').length : 0;
-        totalLinesCount += lines;
-
-        const rawDesc = projectMap[path] || '基础核心模块';
-        const isDeleted = !virtualFiles[path];
-
-        let keywordsList = [];
-        let cleanDesc = rawDesc;
-        const kwMatch = /【检索关键词[:：]([^】]+)】/i.exec(rawDesc);
-        if (kwMatch && kwMatch[1]) {
-          keywordsList = kwMatch[1].split(/[,，、\s]+/).filter(Boolean);
-          cleanDesc = rawDesc.replace(/【检索关键词[:：][^】]+】/i, '').trim();
-        }
-
-        const isBloated = lines >= 150;
-        const fileExt = path.split('.').pop().toLowerCase();
-        const icon = fileExt === 'html' ? '📄' : fileExt === 'css' ? '🎨' : fileExt === 'js' ? '⚡' : fileExt === 'json' ? '📦' : '📁';
-
-        return `
-          <div class="bg-white border ${isBloated ? 'border-amber-300 shadow-xs' : 'border-zinc-200'} rounded-2xl p-3.5 space-y-2.5 transition hover:border-zinc-300">
-            <!-- 顶栏：文件路径 + 超清晰高亮行数徽章 -->
-            <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
-              <div class="flex items-center space-x-1.5 min-w-0 pr-2">
-                <span class="text-sm shrink-0">${icon}</span>
-                <span class="font-mono font-bold text-xs text-zinc-900 truncate ${isDeleted ? 'line-through opacity-40' : ''}">${escapeHtml(path)}</span>
-              </div>
-              <span class="text-[11px] font-mono font-bold shrink-0 ${isBloated ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'} px-2 py-0.5 rounded-md shadow-2xs">
-                ${lines} 行代码
-              </span>
-            </div>
-
-            <!-- 中间：关键词胶囊标签 -->
-            ${keywordsList.length > 0 ? `
-              <div class="flex flex-wrap gap-1">
-                ${keywordsList.map(kw => `
-                  <span class="bg-indigo-50 border border-indigo-100 text-indigo-700 px-1.5 py-0.2 rounded text-[10px] font-mono">
-                    🔑 ${escapeHtml(kw)}
-                  </span>
-                `).join('')}
-              </div>
-            ` : ''}
-
-            <!-- 描述文字 -->
-            <p class="text-zinc-600 text-[11px] leading-relaxed break-words">${escapeHtml(cleanDesc)}</p>
-
-            <!-- 底部：独立操作按钮栏 -->
-            ${!isDeleted ? `
-              <div class="flex items-center justify-end space-x-2 pt-1 border-t border-zinc-50">
-                ${isBloated ? `
-                  <button onclick="triggerSlimFile('${escapeHtml(path)}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[11px] font-bold transition flex items-center space-x-1 shadow-2xs" title="将此大文件拆分成多个小组件文件">
-                    <span>✂️ 智能瘦身拆分</span>
-                  </button>
-                ` : ''}
-                <button onclick="triggerExtractKeywords('${escapeHtml(path)}')" class="px-2.5 py-1 bg-zinc-50 hover:bg-indigo-50 text-indigo-700 border border-zinc-200 hover:border-indigo-300 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 shadow-2xs">
-                  <span>✨ 提取硬核指纹</span>
-                </button>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-
-      if (totalBadge) {
-        totalBadge.innerText = `${Object.keys(virtualFiles).length} 个文件 · 共 ${totalLinesCount} 行代码`;
-      }
-    }
-
-    // ==========================================
-    // 对话长按操作菜单
-    // ==========================================
     function renderChatMessages() {
       const box = document.getElementById('chatMessages');
       if (chatHistory.length === 0) {
-        box.innerHTML = `
-          <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 纯文本精准寻址架构工作坊</div>
-            <p>为了让 AI 精准找到代码，请在提问时提供<b>硬核路标</b>。<br>✅ <b>正确示范：</b>“在【用户设置弹窗】里，找到带有 \`.submit-btn\` 的按钮，改成红色。”</p>
-          </div>
-        `;
+        box.innerHTML = `<div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm"><div class="font-bold text-zinc-900 text-sm">🛠️ 显微镜级大白话无忧创作坊</div><p>直接用通俗的大白话描述需求。随时点击顶部一键生成详尽全景档案。</p></div>`;
         return;
       }
-
       box.innerHTML = chatHistory.map((msg, index) => {
         if (msg.role === 'user') {
-          let attachBadges = '';
-          if (msg.attachments && msg.attachments.length > 0) {
-            attachBadges = `
-              <div class="flex flex-wrap gap-1 mb-1.5 justify-end">
-                ${msg.attachments.map(a => a.isImage 
-                  ? `<span class="bg-zinc-800 border border-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded text-[10px] flex items-center space-x-1"><span>🖼️</span><span>${escapeHtml(a.name)}</span></span>`
-                  : `<span class="bg-zinc-800 border border-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded text-[10px] font-mono">📎 ${escapeHtml(a.name)}</span>`
-                ).join('')}
-              </div>
-            `;
-          }
-
-          return `
-            <div class="flex flex-col items-end msg-container" data-index="${index}">
-              ${attachBadges}
-              <div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer" title="长按弹出操作菜单">
-                ${escapeHtml(msg.content)}
-              </div>
-            </div>
-          `;
+          return `<div class="flex flex-col items-end msg-container" data-index="${index}"><div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer">${escapeHtml(msg.content)}</div></div>`;
         } else if (msg.role === 'assistant') {
-          const cleanExplanation = msg.content
-            .replace(/<file[\s\S]*?<\/file>/gi, '')
-            .replace(/<delete_file[\s\S]*?\/>/gi, '')
-            .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
-            .trim() || '已完成代码与架构寻址更新。';
-
-          const filesTag = msg.updatedFiles && msg.updatedFiles.length > 0
-            ? `<div class="flex flex-wrap gap-1 mt-2">${msg.updatedFiles.map(f => `<span class="bg-zinc-100 border border-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-mono">⚡ 定向更新: ${escapeHtml(f)}</span>`).join('')}</div>`
-            : '';
-
-          return `
-            <div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}">
-              <div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer" title="长按弹出操作菜单">
-                <div>${escapeHtml(cleanExplanation)}</div>
-                ${filesTag}
-              </div>
-            </div>
-          `;
+          const clean = msg.content.replace(/<file[\s\S]*?<\/file>/gi, '').replace(/<delete_file[\s\S]*?\/>/gi, '').replace(/<project_map>[\s\S]*?<\/project_map>/gi, '').trim() || '已完成。';
+          const filesTag = msg.updatedFiles && msg.updatedFiles.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2">${msg.updatedFiles.map(f => `<span class="bg-zinc-100 border border-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-mono">⚡ ${escapeHtml(f)}</span>`).join('')}</div>` : '';
+          return `<div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}"><div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer"><div>${escapeHtml(clean)}</div>${filesTag}</div></div>`;
         } else {
-          return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap cursor-pointer" data-index="${index}" title="长按可删除">${escapeHtml(msg.content)}</div>`;
+          return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap cursor-pointer" data-index="${index}">${escapeHtml(msg.content)}</div>`;
         }
       }).join('');
-
       box.scrollTop = box.scrollHeight;
       bindLongPressEvents();
     }
 
     function bindLongPressEvents() {
       document.querySelectorAll('.msg-container').forEach(el => {
-        let timer = null;
-        const index = parseInt(el.getAttribute('data-index'), 10);
+        let timer = null; const index = parseInt(el.getAttribute('data-index'), 10);
         const start = () => { timer = setTimeout(() => openActionMenu(index), 600); };
         const clear = () => { if (timer) clearTimeout(timer); };
-
-        el.addEventListener('touchstart', start, { passive: true });
-        el.addEventListener('touchend', clear);
-        el.addEventListener('touchmove', clear);
-        el.addEventListener('mousedown', start);
-        el.addEventListener('mouseup', clear);
-        el.addEventListener('mouseleave', clear);
+        el.addEventListener('touchstart', start, { passive: true }); el.addEventListener('touchend', clear); el.addEventListener('touchmove', clear);
+        el.addEventListener('mousedown', start); el.addEventListener('mouseup', clear); el.addEventListener('mouseleave', clear);
       });
     }
 
     function openActionMenu(index) {
-      selectedActionIndex = index;
-      const msg = chatHistory[index];
-      if (!msg) return;
-
-      const modal = document.getElementById('actionMenuModal');
-      const title = document.getElementById('actionMenuTitle');
-      const desc = document.getElementById('actionMenuDesc');
-      const redoBtn = document.getElementById('menuRedoBtn');
-
-      if (msg.role === 'user') {
-        title.innerText = '用户指令选项';
-        desc.innerText = '可复制指令文本或删除该条记录';
-        redoBtn.classList.add('hidden');
-      } else if (msg.role === 'assistant') {
-        title.innerText = 'AI 回复选项';
-        desc.innerText = '可复制、删除、或重置文件重新制作';
-        if (index > 0 && chatHistory[index - 1].role === 'user') {
-          redoBtn.classList.remove('hidden');
-        } else {
-          redoBtn.classList.add('hidden');
-        }
-      } else {
-        title.innerText = '系统消息';
-        desc.innerText = '系统报错通知';
-        redoBtn.classList.add('hidden');
-      }
-
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      selectedActionIndex = index; const msg = chatHistory[index]; if (!msg) return;
+      const modal = document.getElementById('actionMenuModal'); const redoBtn = document.getElementById('menuRedoBtn');
+      if (msg.role === 'assistant' && index > 0 && chatHistory[index - 1].role === 'user') redoBtn.classList.remove('hidden'); else redoBtn.classList.add('hidden');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
     }
-
-    function closeActionMenu() {
-      const modal = document.getElementById('actionMenuModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      selectedActionIndex = null;
-    }
+    function closeActionMenu() { document.getElementById('actionMenuModal').classList.add('hidden'); document.getElementById('actionMenuModal').classList.remove('flex'); selectedActionIndex = null; }
 
     function executeMenuCopy() {
       if (selectedActionIndex === null || !chatHistory[selectedActionIndex]) return;
-      const msg = chatHistory[selectedActionIndex];
-      let copyText = msg.content;
-
-      if (msg.role === 'assistant') {
-        copyText = copyText
-          .replace(/<file[\s\S]*?<\/file>/gi, '')
-          .replace(/<delete_file[\s\S]*?\/>/gi, '')
-          .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
-          .trim();
-      }
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(copyText).then(() => {
-          showToast('📋 内容已复制到剪贴板！');
-        }).catch(() => fallbackCopy(copyText));
-      } else {
-        fallbackCopy(copyText);
-      }
+      const text = chatHistory[selectedActionIndex].content.replace(/<file[\s\S]*?<\/file>/gi, '').replace(/<delete_file[\s\S]*?\/>/gi, '').replace(/<project_map>[\s\S]*?<\/project_map>/gi, '').trim();
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('📋 已复制！'));
       closeActionMenu();
-    }
-
-    function fallbackCopy(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('📋 内容已复制到剪贴板！');
     }
 
     function executeMenuRedo() {
       if (selectedActionIndex === null || !chatHistory[selectedActionIndex]) return;
-      const aiMsgIndex = selectedActionIndex;
-      const userMsgIndex = aiMsgIndex - 1;
-
-      if (userMsgIndex >= 0 && chatHistory[userMsgIndex].role === 'user') {
-        const userMsg = chatHistory[userMsgIndex];
-
+      const userIdx = selectedActionIndex - 1;
+      if (userIdx >= 0 && chatHistory[userIdx].role === 'user') {
+        const userMsg = chatHistory[userIdx];
         if (userMsg.preState) {
           virtualFiles = JSON.parse(JSON.stringify(userMsg.preState.files));
           projectMap = JSON.parse(JSON.stringify(userMsg.preState.projectMap));
-          if (userMsg.preState.sandboxStorage) {
-            sandboxStorage = JSON.parse(JSON.stringify(userMsg.preState.sandboxStorage));
-          }
+          sandboxStorage = JSON.parse(JSON.stringify(userMsg.preState.sandboxStorage || {}));
         }
-
         document.getElementById('promptInput').value = userMsg.content;
-        chatHistory.splice(userMsgIndex, 2);
-        renderChatMessages();
-        refreshPreview();
-        refreshUIElements();
-        persistAllData();
-        closeActionMenu();
-
-        showToast('🔄 已撤销本轮文件改动，正在重新制作...');
+        chatHistory.splice(userIdx, 2);
+        renderChatMessages(); refreshPreview(); refreshUIElements(); persistAllData(); closeActionMenu();
         sendMessage();
-      } else {
-        closeActionMenu();
-      }
+      } else { closeActionMenu(); }
     }
 
     function executeMenuDelete() {
-      if (selectedActionIndex !== null && chatHistory[selectedActionIndex]) {
-        chatHistory.splice(selectedActionIndex, 1);
-        renderChatMessages();
-        persistAllData();
-        showToast('已删除该条记录');
-      }
+      if (selectedActionIndex !== null && chatHistory[selectedActionIndex]) { chatHistory.splice(selectedActionIndex, 1); renderChatMessages(); persistAllData(); showToast('已删除'); }
       closeActionMenu();
     }
 
-    function clearChatHistory() {
-      if (confirm('确认清空所有对话？（文件、架构图谱及网页内部数据会继续保留）')) {
-        chatHistory = [];
-        renderChatMessages();
-        persistAllData();
-      }
-    }
+    function clearChatHistory() { if (confirm('确认清空对话？')) { chatHistory = []; renderChatMessages(); persistAllData(); } }
 
     // ==========================================
-    // 纯本地沙箱打包与渲染
+    // 🌟 终极核心重构：DOM 级别绝对精准的虚拟工程打包器
     // ==========================================
-    function refreshPreview() {
+    function refreshPreview(targetPage) {
+      if (targetPage && virtualFiles[targetPage]) {
+        currentPreviewPage = targetPage;
+      }
+      
       const iframe = document.getElementById('previewFrame');
-      const rawHtml = virtualFiles['index.html'] || Object.values(virtualFiles)[0];
+      const htmlFiles = Object.keys(virtualFiles).filter(f => f.endsWith('.html') || f.endsWith('.htm'));
+      
+      const pageSelector = document.getElementById('previewPageSelector');
+      if (pageSelector) {
+        if (htmlFiles.length > 0) {
+          pageSelector.classList.remove('hidden');
+          pageSelector.innerHTML = htmlFiles.map(f => `<option value="${escapeHtml(f)}" ${f === currentPreviewPage ? 'selected' : ''}>📄 ${escapeHtml(f)}</option>`).join('');
+        } else {
+          pageSelector.classList.add('hidden');
+        }
+      }
+
+      let rawHtml = virtualFiles[currentPreviewPage];
+      if (!rawHtml && htmlFiles.length > 0) {
+        currentPreviewPage = htmlFiles.includes('index.html') ? 'index.html' : htmlFiles[0];
+        rawHtml = virtualFiles[currentPreviewPage];
+      }
 
       if (!rawHtml) {
-        iframe.srcdoc = `<div style="font-family:sans-serif;display:flex;height:100vh;align-items:center;justify-content:center;color:#a1a1aa;background:#fafafa;">
-          <p>✦ 正在等待 AI 构筑本地项目代码...</p>
-        </div>`;
+        iframe.srcdoc = `<div style="font-family:sans-serif;display:flex;height:100vh;align-items:center;justify-content:center;color:#a1a1aa;background:#fafafa;"><p>✦ 等待 AI 构建项目...</p></div>`;
         return;
       }
-      iframe.srcdoc = bundleVirtualProject(rawHtml);
+      
+      iframe.srcdoc = bundleVirtualProject(rawHtml, currentPreviewPage);
     }
 
-    function bundleVirtualProject(html) {
-      for (const [path, code] of Object.entries(virtualFiles)) {
-        if (path.endsWith('.css')) {
-          const fileName = path.split('/').pop();
-          const pattern = new RegExp(`<link[^>]+href=["'][^"']*${escapeRegex(fileName)}["'][^>]*>`, 'gi');
-          html = html.replace(pattern, `<style>/* [Bundle] ${path} */\n${code}</style>`);
+    // 🌟 核心函数：根据完整相对路径精准匹配并内联，绝不发生 settings.js 误伤 chat-settings.js 的情况
+    function findVirtualFileBySrc(src) {
+      if (!src) return null;
+      let clean = src.replace(/^\.\//, '').replace(/^\/+/, '').split('?')[0];
+      
+      // 1. 全路径精确匹配 (例: js/modules/chat-settings.js)
+      if (virtualFiles[clean]) return { path: clean, content: virtualFiles[clean] };
+      
+      // 2. 尾部完整路径匹配 (例: modules/chat-settings.js)
+      for (const [path, content] of Object.entries(virtualFiles)) {
+        if (path.endsWith('/' + clean) || clean.endsWith('/' + path)) {
+          return { path, content };
         }
       }
 
-      for (const [path, code] of Object.entries(virtualFiles)) {
-        if (path.endsWith('.js')) {
-          const fileName = path.split('/').pop();
-          const pattern = new RegExp(`<script[^>]+src=["'][^"']*${escapeRegex(fileName)}["'][^>]*>\\s*<\\/script>`, 'gi');
-          html = html.replace(pattern, `<script>/* [Bundle] ${path} */\n${code}<\/script>`);
-        }
+      // 3. 严格文件名单匹配 (仅当文件名唯一时)
+      const fileName = clean.split('/').pop();
+      const exactMatches = Object.keys(virtualFiles).filter(p => p.split('/').pop() === fileName);
+      if (exactMatches.length === 1) {
+        return { path: exactMatches[0], content: virtualFiles[exactMatches[0]] };
       }
 
-      const serializedSandboxStorage = encodeURIComponent(JSON.stringify(sandboxStorage));
+      return null;
+    }
 
-      const runtimeBridge = `
-      <script>
-        // 虚拟独立沙箱存储
-        (function() {
-          let memoryStorage = {};
-          try {
-            memoryStorage = JSON.parse(decodeURIComponent("${serializedSandboxStorage}")) || {};
-          } catch(e) { memoryStorage = {}; }
+    function bundleVirtualProject(html, currentPath) {
+      // 使用浏览器原生的 DOM 解析器，精准无误地替换 link 和 script 标签
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
 
-          try {
-            const customStorage = {
-              getItem: function(k) { return memoryStorage.hasOwnProperty(k) ? memoryStorage[k] : null; },
-              setItem: function(k, v) {
-                memoryStorage[k] = String(v);
-                window.parent.postMessage({ type: 'SANDBOX_STORAGE_SET', key: k, value: String(v) }, '*');
-              },
-              removeItem: function(k) {
-                delete memoryStorage[k];
-                window.parent.postMessage({ type: 'SANDBOX_STORAGE_REMOVE', key: k }, '*');
-              },
-              clear: function() {
-                for (const k in memoryStorage) delete memoryStorage[k];
-                window.parent.postMessage({ type: 'SANDBOX_STORAGE_CLEAR' }, '*');
-              },
-              key: function(i) { return Object.keys(memoryStorage)[i] || null; },
-              get length() { return Object.keys(memoryStorage).length; }
-            };
+      // 1. 替换所有内联 CSS
+      const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('//')) {
+          const match = findVirtualFileBySrc(href);
+          if (match) {
+            const style = doc.createElement('style');
+            style.setAttribute('data-bundle-path', match.path);
+            style.textContent = `/* [Bundle] ${match.path} */\n${match.content}`;
+            link.parentNode.replaceChild(style, link);
+          }
+        }
+      });
 
-            Object.defineProperty(window, 'localStorage', {
-              get: function() { return customStorage; },
-              configurable: true
-            });
-          } catch(e) {}
-        })();
+      // 2. 替换所有内联 JS
+      const scripts = Array.from(doc.querySelectorAll('script[src]'));
+      scripts.forEach(script => {
+        const src = script.getAttribute('src');
+        if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('//')) {
+          const match = findVirtualFileBySrc(src);
+          if (match) {
+            const inlineScript = doc.createElement('script');
+            inlineScript.setAttribute('data-bundle-path', match.path);
+            inlineScript.textContent = `/* [Bundle] ${match.path} */\n${match.content}`;
+            script.parentNode.replaceChild(inlineScript, script);
+          }
+        }
+      });
 
-        ['log', 'warn', 'error', 'info'].forEach(t => {
-          const o = console[t];
-          console[t] = (...a) => {
-            window.parent.postMessage({ type: 'CONSOLE_LOG', level: t, msg: a.map(x => typeof x==='object'?JSON.stringify(x):x).join(' ') }, '*');
-            o.apply(console, a);
-          };
-        });
-        window.onerror = (m, u, l) => window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: m + ' (行 ' + l + ')' }, '*');
-      <\/script>
-      `;
-      return runtimeBridge + html;
+      const serialized = encodeURIComponent(JSON.stringify(sandboxStorage));
+
+      // 3. 构造最高权限 Bridge 脚本并注入 head 头部
+      const bridgeScript = doc.createElement('script');
+      bridgeScript.textContent = `
+(function(){
+  let m = {};
+  try { m = JSON.parse(decodeURIComponent("${serialized}")) || {}; } catch(e) { m = {}; }
+  try {
+    const s = {
+      getItem: k => (m[k] !== undefined ? m[k] : null),
+      setItem: (k, v) => { m[k] = String(v); window.parent.postMessage({type:'SANDBOX_STORAGE_SET', key:k, value:String(v)}, '*'); },
+      removeItem: k => { delete m[k]; window.parent.postMessage({type:'SANDBOX_STORAGE_REMOVE', key:k}, '*'); },
+      clear: () => { m = {}; window.parent.postMessage({type:'SANDBOX_STORAGE_CLEAR'}, '*'); },
+      key: i => Object.keys(m)[i] || null,
+      get length() { return Object.keys(m).length; }
+    };
+    Object.defineProperty(window, 'localStorage', { get: () => s, configurable: true });
+    Object.defineProperty(window, 'sessionStorage', { get: () => s, configurable: true });
+  } catch(e) {}
+
+  document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('javascript:') && !href.startsWith('#') && !href.startsWith('blob:') && !href.startsWith('data:')) {
+      e.preventDefault();
+      window.parent.postMessage({ type: 'SWITCH_PREVIEW_PAGE', targetPage: href.replace(/^\\.\\//, '') }, '*');
+    }
+  }, true);
+
+  const rawOpen = window.open;
+  window.open = function(url, target, features) {
+    if (url && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('javascript:')) {
+      window.parent.postMessage({ type: 'SWITCH_PREVIEW_PAGE', targetPage: url.replace(/^\\.\\//, '') }, '*');
+      return window;
+    }
+    return rawOpen.call(window, url, target || '_blank', features);
+  };
+
+  ['log','warn','error'].forEach(t => {
+    const o = console[t];
+    console[t] = (...a) => {
+      window.parent.postMessage({type:'CONSOLE_LOG', level:t, msg:a.map(x=>typeof x==='object'?JSON.stringify(x):x).join(' ')}, '*');
+      o.apply(console, a);
+    };
+  });
+  window.onerror = (m, u, l) => window.parent.postMessage({type:'CONSOLE_LOG', level:'error', msg:m+' (行'+l+')'}, '*');
+})();
+`;
+      if (doc.head) doc.head.insertBefore(bridgeScript, doc.head.firstChild);
+      else if (doc.body) doc.body.insertBefore(bridgeScript, doc.body.firstChild);
+
+      return doc.documentElement.outerHTML;
     }
 
     function handleIframeMessage(e) {
       if (!e.data) return;
       if (e.data.type === 'CONSOLE_LOG') addConsoleLog(e.data.level, e.data.msg);
-
-      if (e.data.type === 'SANDBOX_STORAGE_SET') {
-        sandboxStorage[e.data.key] = e.data.value;
-        persistAllData();
-        refreshUIElements();
-      }
-      if (e.data.type === 'SANDBOX_STORAGE_REMOVE') {
-        delete sandboxStorage[e.data.key];
-        persistAllData();
-        refreshUIElements();
-      }
-      if (e.data.type === 'SANDBOX_STORAGE_CLEAR') {
-        sandboxStorage = {};
-        persistAllData();
-        refreshUIElements();
+      if (e.data.type === 'SANDBOX_STORAGE_SET') { sandboxStorage[e.data.key] = e.data.value; persistAllData(); refreshUIElements(); }
+      if (e.data.type === 'SANDBOX_STORAGE_REMOVE') { delete sandboxStorage[e.data.key]; persistAllData(); refreshUIElements(); }
+      if (e.data.type === 'SANDBOX_STORAGE_CLEAR') { sandboxStorage = {}; persistAllData(); refreshUIElements(); }
+      
+      if (e.data.type === 'SWITCH_PREVIEW_PAGE') {
+        const target = e.data.targetPage;
+        if (virtualFiles[target]) {
+          refreshPreview(target);
+          showToast(`已无缝跳转至: ${target}`);
+        } else {
+          showToast(`⚠️ 找不到目标页面: ${target}`);
+        }
       }
     }
 
-    // ==========================================
-    // 数据持久化
-    // ==========================================
     function persistAllData(showNotif = false) {
-      const payload = {
-        virtualFiles,
-        projectMap,
-        chatHistory,
-        sandboxStorage,
-        remoteModels,
-        selectedModel: selectedModel || document.getElementById('customModelInput').value.trim(),
-        apiConfig: {
-          baseUrl: document.getElementById('apiBaseUrl').value.trim(),
-          apiKey: document.getElementById('apiKey').value.trim(),
-          model: selectedModel || document.getElementById('customModelInput').value.trim()
-        }
-      };
-
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        if (showNotif) showToast('💾 所有数据（含网页内部设置）已保存！');
-      } catch (e) {
-        if (showNotif) showToast('❌ 存储失败：单次代码过大，建议导出 JSON 备份');
-      }
+      const payload = { virtualFiles, projectMap, chatHistory, sandboxStorage, remoteModels, selectedModel, apiConfig: { baseUrl: document.getElementById('apiBaseUrl').value.trim(), apiKey: document.getElementById('apiKey').value.trim(), model: selectedModel } };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); if (showNotif) showToast('💾 保存成功！'); } catch (e) { if (showNotif) showToast('❌ 保存失败'); }
     }
 
     function loadStateFromStorage() {
@@ -1732,93 +1287,46 @@ ${code}
       if (!raw) return;
       try {
         const s = JSON.parse(raw);
-        virtualFiles = s.virtualFiles || {};
-        projectMap = s.projectMap || {};
-        chatHistory = s.chatHistory || [];
-        remoteModels = s.remoteModels || [];
-        selectedModel = s.selectedModel || '';
-        sandboxStorage = s.sandboxStorage || {};
-
-        if (s.apiConfig) {
-          document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || '';
-          document.getElementById('apiKey').value = s.apiConfig.apiKey || '';
-          document.getElementById('customModelInput').value = s.apiConfig.model || '';
-          selectedModel = s.apiConfig.model || '';
-        }
-
-        renderChatMessages();
-        refreshPreview();
-        refreshUIElements();
-        updateRollbackUI();
-      } catch (e) {
-        console.error('加载本地存储失败:', e);
-      }
+        virtualFiles = s.virtualFiles || {}; projectMap = s.projectMap || {}; chatHistory = s.chatHistory || []; remoteModels = s.remoteModels || []; selectedModel = s.selectedModel || ''; sandboxStorage = s.sandboxStorage || {};
+        if (s.apiConfig) { document.getElementById('apiBaseUrl').value = s.apiConfig.baseUrl || ''; document.getElementById('apiKey').value = s.apiConfig.apiKey || ''; document.getElementById('customModelInput').value = s.apiConfig.model || ''; selectedModel = s.apiConfig.model || ''; }
+        renderChatMessages(); refreshPreview(); refreshUIElements(); updateRollbackUI();
+      } catch (e) {}
     }
 
     function exportZip() {
-      const keys = Object.keys(virtualFiles);
-      if (keys.length === 0) return showToast('项目为空');
-      const zip = new JSZip();
-      keys.forEach(p => zip.file(p, virtualFiles[p]));
-      zip.file("PROJECT_MAP.json", JSON.stringify(projectMap, null, 2));
-      zip.file("SANDBOX_DATA.json", JSON.stringify(sandboxStorage, null, 2));
+      const keys = Object.keys(virtualFiles); if (keys.length === 0) return showToast('项目为空');
+      const zip = new JSZip(); keys.forEach(p => zip.file(p, virtualFiles[p])); zip.file("PROJECT_MAP.json", JSON.stringify(projectMap, null, 2));
       zip.generateAsync({ type: "blob" }).then(b => saveAs(b, "ai-web-project.zip"));
     }
 
     function resetEntireProject() {
-      if (confirm('⚠️ 警告：彻底清空全部代码、对话与网页内部数据？')) {
+      if (confirm('⚠️ 清空所有数据？')) {
         virtualFiles = {}; projectMap = {}; chatHistory = []; sandboxStorage = {}; lastSnapshotState = null;
-        localStorage.removeItem(STORAGE_KEY);
-        renderChatMessages();
-        refreshPreview();
-        refreshUIElements();
-        updateRollbackUI();
-        showToast('项目已清空');
-        switchBottomTab('maker');
+        localStorage.removeItem(STORAGE_KEY); renderChatMessages(); refreshPreview(); refreshUIElements(); updateRollbackUI();
+        showToast('已清空'); switchBottomTab('maker');
       }
     }
 
-    function toggleConsoleDrawer() {
-      const c = document.getElementById('consoleDrawer');
-      c.classList.toggle('hidden');
-      c.classList.toggle('flex');
-    }
-
+    function toggleConsoleDrawer() { const c = document.getElementById('consoleDrawer'); c.classList.toggle('hidden'); c.classList.toggle('flex'); }
     function addConsoleLog(type, msg) {
-      const box = document.getElementById('consoleLogs');
-      const row = document.createElement('div');
-      row.className = `p-1 rounded text-zinc-700 font-mono flex space-x-2`;
-      row.innerHTML = `<span class="opacity-40">[${new Date().toLocaleTimeString()}]</span><span>${escapeHtml(msg)}</span>`;
-      box.appendChild(row);
-      box.scrollTop = box.scrollHeight;
+      const box = document.getElementById('consoleLogs'); const row = document.createElement('div');
+      row.className = `p-1 rounded text-zinc-700 font-mono flex space-x-2`; row.innerHTML = `<span class="opacity-40">[${new Date().toLocaleTimeString()}]</span><span>${escapeHtml(msg)}</span>`;
+      box.appendChild(row); box.scrollTop = box.scrollHeight;
     }
-
     function clearLogs() { document.getElementById('consoleLogs').innerHTML = ''; }
-
     function refreshUIElements() {
       document.getElementById('topFileCount').innerText = `${Object.keys(virtualFiles).length}文件`;
-      document.getElementById('topFeatureCount').innerText = `${Object.keys(projectMap).length}模块`;
-      
-      const sandboxCountEl = document.getElementById('sandboxDataCountLabel');
-      if (sandboxCountEl) {
-        sandboxCountEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页数据`;
-      }
+      document.getElementById('topFeatureCount').innerText = `${Object.keys(projectMap).length}档案`;
+      const sEl = document.getElementById('sandboxDataCountLabel'); if (sEl) sEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页数据`;
     }
-
     function setLoading(isLoading, text = "") {
-      const p = document.getElementById('stepProgress');
-      document.getElementById('stepProgressText').innerText = text;
-      document.getElementById('sendBtn').disabled = isLoading;
-      p.classList.toggle('hidden', !isLoading);
+      const p = document.getElementById('stepProgress'); document.getElementById('stepProgressText').innerText = text;
+      document.getElementById('sendBtn').disabled = isLoading; p.classList.toggle('hidden', !isLoading);
     }
-
     function showToast(text) {
-      const t = document.getElementById('toastNotification');
-      document.getElementById('toastText').innerText = text;
-      t.classList.remove('-translate-y-16', 'opacity-0');
-      setTimeout(() => t.classList.add('-translate-y-16', 'opacity-0'), 2200);
+      const t = document.getElementById('toastNotification'); document.getElementById('toastText').innerText = text;
+      t.classList.remove('-translate-y-16', 'opacity-0'); setTimeout(() => t.classList.add('-translate-y-16', 'opacity-0'), 2200);
     }
-
     function escapeHtml(s) { return (s || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
     function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
   </script>
