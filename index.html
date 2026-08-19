@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AI Web Studio - 关键词自动同步版</title>
+  <title>AI Web Studio - 防破坏微创版</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- JSZip & FileSaver CDN -->
@@ -50,8 +50,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🔄 关键词自适应同步已就绪:</span>
-          <span class="truncate">每次修改文件，图谱与关键词自动更新。</span>
+          <span class="text-indigo-600 font-semibold">🛡️ 微创防破坏模式已锁定:</span>
+          <span class="truncate">严格保护现有代码、UI与点击事件。</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -64,8 +64,8 @@
       <!-- 消息列表 -->
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-          <div class="font-bold text-zinc-900 text-sm">🛠️ 全自动关键词自愈工作坊</div>
-          <p>每次修改代码后，系统会<b>自动更新修改文件的关键词与功能描述</b>，确保寻址图谱时刻处于最新状态。清空对话后，AI 依然能 100% 准确命中！</p>
+          <div class="font-bold text-zinc-900 text-sm">🛠️ 微创防破坏工作坊 (v15.0)</div>
+          <p>已启用<b>两阶段 AI 架构师决策 + 严格防破坏铁律</b>：AI 在修改时必须严格保留现有 DOM ID、样式与点击事件，绝不擅自改乱其他功能！</p>
           <div class="text-[11px] text-zinc-400 pt-1 border-t border-zinc-200/60 mt-2">
             💡 点 ➕ 可传图/代码，长按气泡可复制、删除或重做本轮。
           </div>
@@ -86,7 +86,7 @@
           <div id="attachmentPreviews" class="hidden px-3 pt-2.5 flex flex-wrap gap-2 border-b border-zinc-100 bg-zinc-50/50"></div>
 
           <!-- 文本输入框 -->
-          <textarea id="promptInput" rows="2" placeholder="输入需求（如：“把设置页面里的音量滑块改成蓝色圆角”）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
+          <textarea id="promptInput" rows="2" placeholder="输入你的修改需求（AI 将在严格保护现有功能的前提下进行微创修改）..." class="w-full p-3 text-xs text-zinc-800 placeholder-zinc-400 bg-transparent focus:outline-none resize-none"></textarea>
           
           <!-- 底部工具条 -->
           <div class="flex justify-between items-center px-3 py-1.5 bg-zinc-50/80 border-t border-zinc-100">
@@ -110,6 +110,7 @@
     <!-- ========== 视图 2：预览 HTML (Live Preview) ========== -->
     <section id="view-preview" class="w-full h-full flex flex-col bg-zinc-100 hidden">
       <div class="h-10 border-b border-zinc-200 bg-white px-3 flex items-center justify-between text-xs text-zinc-600 shrink-0">
+        <!-- 视口切换 -->
         <div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px]">
           <button onclick="setDeviceViewport('desktop')" id="btn-desktop" class="px-2 py-0.5 rounded font-medium bg-white text-zinc-900 shadow-sm transition">桌面</button>
           <button onclick="setDeviceViewport('tablet')" id="btn-tablet" class="px-2 py-0.5 rounded font-medium text-zinc-500 hover:text-zinc-900 transition">平板</button>
@@ -200,9 +201,16 @@
     <!-- ========== 视图 4：其他设置 ========== -->
     <section id="view-settings" class="w-full h-full bg-zinc-50 p-4 md:p-6 overflow-y-auto hidden">
       <div class="max-w-3xl mx-auto space-y-4">
-        <div>
-          <h2 class="text-base font-bold text-zinc-900">项目资产与寻址图谱管理</h2>
-          <p class="text-xs text-zinc-500">在图谱中可为每个文件<b>智能提取与定制专属关键词</b>，修改代码后系统会自动同步更新关键词。</p>
+        <!-- 🌟 显眼的版本号展示区域 -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-zinc-200/80 pb-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-base font-bold text-zinc-900">项目资产与寻址图谱管理</h2>
+              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v15.0 防破坏微创版</span>
+            </div>
+            <p class="text-xs text-zinc-500 mt-0.5">修改代码时受防破坏铁律严格保护，图谱关键词与网页数据全自动同步。</p>
+          </div>
+          <span class="text-[10px] font-mono text-zinc-400 bg-zinc-100 px-2 py-1 rounded border border-zinc-200 self-start sm:self-auto">Build 2026.15</span>
         </div>
 
         <!-- 顶置三大卡片 -->
@@ -256,7 +264,7 @@
               <h3 class="text-xs font-bold text-zinc-900 uppercase flex items-center space-x-1.5">
                 <span>🧠 AI 内部功能寻址图谱 (Architecture Manifest)</span>
               </h3>
-              <p class="text-[11px] text-zinc-400 mt-0.5">每次修改文件后，系统会自动将新增功能更新至关键词列表。</p>
+              <p class="text-[11px] text-zinc-400 mt-0.5">点击每个文件旁的【✨ 智能提取关键词】，可为现有文件补充丰富检索词！</p>
             </div>
             <span id="totalLinesBadge" class="text-[11px] text-indigo-600 font-medium font-mono shrink-0">0 个文件 · 0 行代码</span>
           </div>
@@ -376,7 +384,7 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_AUTOSYNC_V14';
+    const STORAGE_KEY = 'AI_WEB_STUDIO_PRO_V15_SURGICAL';
 
     let virtualFiles = {};          // 后台虚拟多文件
     let projectMap = {};            // 功能寻址脑图 (含检索关键词)
@@ -390,28 +398,21 @@
     let lastSnapshotState = null;   // 单步回滚备份
     let currentEditingFile = null;  // 当前正在提取/编辑关键词的目标文件
 
-    // 🌟 核心代码生成 Prompt
+    // 🌟 强力固化防破坏铁律的 System Prompt
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师与资深前端专家。
 你负责为用户开发和一步一步迭代一个多文件纯前端 Web 工程。
 
-【最核心原则 1 - 多文件模块化拆分规范】：
-1. 严禁把所有代码全部堆在单个文件里！
-2. 必须积极主动地将工程合理拆分成多个模块文件（样式层 css/, 逻辑层 js/, 数据层 data/）。
-3. 始终以 \`index.html\` 作为主入口引入这些 CSS 和 JS 文件。
-
-【最核心原则 2 - 必须自动同步更新被改动文件的【检索关键词】】：
-每次在输出末尾更新 <project_map> 时，【必须为你本次修改或新建的每一个文件输出最新的检索关键词与描述】（必须包含你刚刚新增的函数名、新UI组件与业务动作，至少5-10个关键词），格式必须严格如下：
-<project_map>
-{
-  "被修改的文件完整路径": "【检索关键词: 旧关键词, 刚刚新增的功能关键词1, 关键词2, ...】更新后的最新完整职责说明"
-}
-</project_map>
-
-【最核心原则 3 - 纯本地单页 SPA 规范与增量修改】：
-1. 页面切换、设置弹窗必须在单页内通过 DOM 显隐切换或弹窗组件实现，严禁生成会触发向外跳页的 <a> 链接！
-2. 仔细研读系统为你提供的【命中目标文件源码】(<target_file>)，【必须完整输出被修改文件的全部代码】！绝不能输出省略号或未完成的代码！
-3. 若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
-4. 标签外用简明专业的中文说明改动点。`;
+【🚨 最高优先级铁律 - 严格微创手术与防破坏守则 🚨】：
+1. 【禁止擅自重构与改动 UI】：你本次修改的目标极为单一！严禁“自作聪明”去美化、重写、精简任何用户没有明确要求改动的页面 UI、颜色、布局与已有功能！
+2. 【已有代码 1:1 绝对继承】：必须仔细比对 <target_file> 中的现有源码，未涉及修改的函数、变量、CSS 样式类必须 100% 原样保留，绝不允许漏掉任何一行已有逻辑！
+3. 【禁止破坏点击响应】：
+   - 严禁使用覆盖父容器 innerHTML 的方式插入新元素（这会导致已有按钮的点击事件监听全部失效）！
+   - 必须确保所有弹窗、蒙版在关闭/隐藏状态下绝对不会阻挡底层页面的点击（严禁出现隐形透明层遮挡按钮的 bug）！
+4. 【纯本地单页 SPA 规范】：页面切换、设置弹窗必须在单页内通过 DOM 显隐切换或弹窗组件实现，严禁生成会触发向外跳页的 <a> 链接！
+5. 【必须多文件模块化拆分】：严禁单文件大杂烩，积极合理拆分文件。
+6. 【主动清理旧文件】：若需清理废弃旧文件，请输出 <delete_file path="要删除的文件路径"/>。
+7. 【架构认知图谱】：在每次输出末尾必须为本次修改的文件更新包含详细【检索关键词】的 <project_map>。
+8. 标签外用简明专业的中文说明改动点与实现细节。`;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStateFromStorage();
@@ -744,7 +745,7 @@ ${code}
         : `正在从零创建项目`;
 
       // 🌟 第二阶段：定向编写与增量手术
-      setLoading(true, `正在定向编码: ${targetNotice}...`);
+      setLoading(true, `正在微创编码: ${targetNotice}...`);
 
       const mapStr = Object.keys(projectMap).length > 0 
         ? JSON.stringify(projectMap, null, 2) 
@@ -774,7 +775,7 @@ ${code}
         }
       });
 
-      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
+      const fullTextPrompt = `【项目架构全局功能图谱 (含关键词)】:\n${mapStr}\n\n${targetedFilesPayload}\n${attachedCodeContext}\n【用户最新修改指令】: ${prompt || '请深度分析上传的文件/图片，将其实现并融合进项目中。'}\n【核心规范要求】：必须受防破坏铁律严格约束！完整输出被修改或新建的文件 <file path="...">，若需清理废弃旧文件请输出 <delete_file path="..."/>。【并且必须在末尾为本次修改的文件更新最新的 <project_map> 关键词与描述】！`;
 
       let userApiPayload;
       if (imagePayloads.length > 0) {
@@ -828,9 +829,8 @@ ${code}
           showToast('⚠️ 检测到部分代码输出被模型截断，已自动拦截保护原文件！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 代码已更新 (${updated.join(', ')})！`);
+          showToast(`✨ 代码已微创更新 (${updated.join(', ')})！`);
 
-          // 🌟 自动检查：如果有被修改的文件漏了关键词更新，立即在后台自动自愈补全！
           const unmappedFiles = updated.filter(f => !f.startsWith('已删除:') && !mappedFiles.includes(f));
           if (unmappedFiles.length > 0) {
             autoRefreshKeywordsForFiles(unmappedFiles, baseUrl, apiKey, model);
@@ -859,7 +859,6 @@ ${code}
       const updated = [];
       let hasTruncation = false;
 
-      // 1. 删除指令
       const deleteRegex = /<delete_file\s+path=["']([^"']+)["']\s*\/?>/gi;
       let delMatch;
       while ((delMatch = deleteRegex.exec(text)) !== null) {
@@ -869,7 +868,6 @@ ${code}
         updated.push(`已删除: ${delPath}`);
       }
 
-      // 2. 文件匹配
       const fileRegex = /<file\s+path=["']([^"']+)["']>([\s\S]*?)<\/file>/gi;
       let match;
       const matchedPaths = new Set();
@@ -882,7 +880,6 @@ ${code}
         matchedPaths.add(path);
       }
 
-      // 检查是否有未闭合的 <file> 标签
       const unclosedMatch = /<file\s+path=["']([^"']+)["']>([\s\S]*)$/i.exec(text);
       if (unclosedMatch && !text.endsWith('</file>') && !matchedPaths.has(unclosedMatch[1].trim())) {
         hasTruncation = true;
@@ -1055,7 +1052,7 @@ ${code}
     function exportProjectJson() {
       const payload = {
         app: "AI_WEB_STUDIO_PRO_BACKUP",
-        version: "14.0",
+        version: "15.0",
         exportedAt: new Date().toLocaleString(),
         virtualFiles: virtualFiles,
         projectMap: projectMap,
@@ -1289,7 +1286,7 @@ ${code}
       if (chatHistory.length === 0) {
         box.innerHTML = `
           <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
-            <div class="font-bold text-zinc-900 text-sm">🛠️ 真实两阶段决策工作坊</div>
+            <div class="font-bold text-zinc-900 text-sm">🛠️ 微创防破坏工作坊 (v15.0)</div>
             <p>输入你的需求，或点 ➕ 上传参考图与已有代码文件。</p>
           </div>
         `;
@@ -1697,7 +1694,7 @@ ${code}
       
       const sandboxCountEl = document.getElementById('sandboxDataCountLabel');
       if (sandboxCountEl) {
-        sandboxCountEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页内部数据`;
+        sandboxCountEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页数据`;
       }
     }
 
