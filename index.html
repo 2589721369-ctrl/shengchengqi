@@ -43,7 +43,7 @@
         <span>⚡ 一键生成显微镜级详细档案</span>
       </button>
       <button onclick="persistAllData(true)" class="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg text-xs font-medium transition shadow-sm shrink-0 flex items-center space-x-1">
-        <span>💾 保存</span>
+        <span>💾 备份保存</span>
       </button>
     </div>
   </header>
@@ -55,8 +55,8 @@
     <section id="view-maker" class="w-full h-full flex flex-col bg-white">
       <div class="px-4 py-2 border-b border-zinc-100 bg-zinc-50/80 flex justify-between items-center text-[11px] text-zinc-500 shrink-0">
         <span class="flex items-center space-x-1 truncate mr-2">
-          <span class="text-indigo-600 font-semibold">🤖 显微镜级档案闭环:</span>
-          <span class="truncate">支持血缘图谱与思维链，大白话雷达绝不迷路！</span>
+          <span class="text-indigo-600 font-semibold">🤖 纯净大白话模式:</span>
+          <span class="truncate">自动隐藏冗长代码，只展示修改摘要！</span>
         </span>
         <div class="flex items-center space-x-2 shrink-0">
           <button id="quickRollbackBtn" onclick="rollbackLastTurn()" class="px-2 py-0.5 rounded text-xs font-medium transition bg-zinc-100 text-zinc-400 cursor-not-allowed flex items-center space-x-1" disabled>
@@ -70,7 +70,7 @@
       <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs max-w-3xl w-full mx-auto">
         <div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm">
           <div class="font-bold text-zinc-900 text-sm">🛠️ 显微镜级大白话无忧创作坊</div>
-          <p>尽管放手把网页做大。随时点击顶部<b>【⚡ 一键生成显微镜级详细档案】</b>，AI 就会把每个文件里包含的每一个元素、每一个函数、每一个业务逻辑扒得清清楚楚！</p>
+          <p>数据已接入 <b>IndexedDB 本地数据库</b>，即使关闭浏览器也会全自动保存！聊天界面会自动精简，只展示核心改动大白话。</p>
         </div>
       </div>
 
@@ -203,7 +203,7 @@
           <div>
             <div class="flex items-center space-x-2">
               <h2 class="text-base font-bold text-zinc-900">项目资产与显微镜级档案管理</h2>
-              <span class="text-[10px] bg-zinc-900 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v18.8 完整全同步版</span>
+              <span class="text-[10px] bg-emerald-600 text-white font-mono px-2 py-0.5 rounded-full font-semibold shadow-xs">v19.0 IndexedDB永久存储版</span>
             </div>
             <p class="text-xs text-zinc-500 mt-0.5">每个文件包含的所有元素、函数、交互细节全景记录。</p>
           </div>
@@ -238,12 +238,12 @@
 
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="persistAllData(true)" class="px-3.5 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-medium rounded-xl shadow-2xs">
-            💾 立即保存到浏览器
+            💾 立即保存到本地数据库
           </button>
           <button id="mainRollbackBtn" onclick="rollbackLastTurn()" class="px-3.5 py-1.5 rounded-xl border text-xs font-medium transition shadow-2xs bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed" disabled>
             ↩️ 撤回最后一轮修改 (无记录)
           </button>
-          <span class="text-[11px] text-zinc-400 font-mono" id="sandboxDataCountLabel">已同步 0 项网页数据</span>
+          <span class="text-[11px] text-emerald-600 font-mono font-medium" id="sandboxDataCountLabel">✓ 数据库自动同步中</span>
           <button onclick="resetEntireProject()" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-xl ml-auto">
             🗑️ 清空所有数据
           </button>
@@ -352,7 +352,9 @@
 
   <!-- ==================== 5. 核心 JavaScript ==================== -->
   <script>
-    const STORAGE_KEY = 'AI_WEB_STUDIO_MICROSCOPIC_V18_8';
+    const DB_NAME = 'AI_WEB_STUDIO_DB';
+    const DB_STORE = 'STUDIO_STORE';
+    const DB_KEY = 'PROJECT_DATA_V19';
 
     let virtualFiles = {};
     let projectMap = {};
@@ -368,27 +370,79 @@
     let currentSlimmingFile = null;
     let currentPreviewPage = 'index.html';
     
-    // 🌟 全局独立 API 响应式配置中心
     let apiConfig = {
       baseUrl: '',
       apiKey: '',
       model: ''
     };
 
+    // 🌟 强力约束：严禁在正文中吐出任何 Markdown 代码块，只允许大白话概述！
     const SYSTEM_PROMPT = `你是一个顶级全栈 Web 架构师。你负责为完全不懂代码的用户迭代一个多文件纯前端 Web 工程。
 
-【🚨 核心要求 - 显微镜级血缘档案同步 🚨】：
-1. 每次修改、新建或删除文件后，必须在输出末尾追加 <project_map> JSON 标签。
-2. 该 JSON 中【只需要包含本次修改或新建】的文件，绝对不要输出未修改的文件！
-3. 每个文件的描述必须是一段纯文本，且严格遵循这三个分段：
-   💡功能：(一句话描述该文件作用与包含的HTML/UI)
-   📦抛出：(定义了哪些 JS 函数、全局变量、核心ID等供外部调用)
-   🔗依赖：(引用了工程中的哪些其他文件，例如引入的 js/css)
-   例如："💡功能：包含头部导航栏及用户表格。 📦抛出：loadData()。 🔗依赖：js/api.js"
-4. 新建组件用 <file path="...">，删除文件用 <delete_file path="..." />。`;
+【🚨 核心要求 🚨】：
+1. 你的正文回复必须是极简的“大白话摘要”（2~3句话），概述你做了什么改动，严禁在正文中包含任何 Markdown 代码块（如 \`\`\`html 或 \`\`\`javascript 等）！
+2. 所有代码修改、新增必须【且只能】包裹在 <file path="...">...</file> 标签内！删除文件必须使用 <delete_file path="..." />！
+3. 每次修改、新建或删除文件后，必须在输出末尾追加 <project_map> JSON 标签，只包含本次修改/新建的文件！
+4. 每个文件的档案描述严格遵循三段式：
+   💡功能：(大白话功能与UI)
+   📦抛出：(导出的函数/变量/ID)
+   🔗依赖：(引用的其他文件)`;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadStateFromStorage();
+    // ==========================================
+    // 🌟 IndexedDB 无容量上限本地数据库引擎
+    // ==========================================
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(DB_STORE)) {
+            db.createObjectStore(DB_STORE);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSet(key, val) {
+      try {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          tx.objectStore(DB_STORE).put(val, key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch(e) { console.error('IndexedDB 写入失败', e); }
+    }
+
+    async function dbGet(key) {
+      try {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readonly');
+          const req = tx.objectStore(DB_STORE).get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      } catch(e) { return null; }
+    }
+
+    async function dbDelete(key) {
+      try {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(DB_STORE, 'readwrite');
+          tx.objectStore(DB_STORE).delete(key);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      } catch(e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadStateFromStorage();
       document.getElementById('promptInput').addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
       });
@@ -417,7 +471,6 @@
       if (tabKey === 'settings') { renderProjectMapUI(); }
     }
 
-    // 🌟 强行同步 API 状态到输入框和列表
     function refreshApiUI() {
       const urlInput = document.getElementById('apiBaseUrl');
       const keyInput = document.getElementById('apiKey');
@@ -617,10 +670,6 @@
       const mapStr = JSON.stringify(projectMap, null, 2);
       const plannerSystemPrompt = `你是一个顶级的全栈工程架构师，你的任务是“精准寻址”。
 请根据用户的【大白话需求】以及【带依赖关系的档案图谱】，顺藤摸瓜找出【所有】需要修改的文件。
-【思考逻辑】：
-1. 用户的需求要在哪个文件里改 UI？
-2. 用户的需求是否涉及数据流或业务逻辑的变动？如果有，顺着“🔗依赖”或“📦抛出”找出对应的 JS/CSS 文件。
-3. 宁可多找相关文件，绝不漏找！
 【严格输出 JSON 格式】：
 {
   "thought_process": "推理过程...",
@@ -642,10 +691,6 @@
           let c = data.choices[0].message.content.trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
           const parsed = JSON.parse(c);
           
-          if (parsed.thought_process) {
-            console.log("🧠 AI 寻址推理过程：", parsed.thought_process);
-          }
-
           if (Array.isArray(parsed.target_files)) {
             const valid = parsed.target_files.filter(f => virtualFiles[f]);
             if (valid.length > 0) {
@@ -653,9 +698,7 @@
             }
           }
         }
-      } catch (e) {
-        console.error("寻址解析失败", e);
-      }
+      } catch (e) {}
       return { target_files: localMatched, reason: "本地雷达命中" };
     }
 
@@ -728,7 +771,8 @@
           let safeContent = m.content;
           if (m.role === 'assistant') {
             safeContent = safeContent.replace(/<file[\s\S]*?<\/file>/gi, '\n[代码已更新至工程，此处省略]\n')
-                                     .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '\n[图谱已更新，此处省略]\n');
+                                     .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '\n[图谱已更新，此处省略]\n')
+                                     .replace(/```[\s\S]*?```/gi, '');
           }
           return { role: m.role, content: safeContent };
         }),
@@ -756,7 +800,7 @@
           showToast('⚠️ 输出被截断，已拦截保护！');
         } else if (updated.length > 0) {
           refreshPreview();
-          showToast(`✨ 修改成功！已同步显微镜档案与文件: ${updated.join(', ')}`);
+          showToast(`✨ 修改成功！已更新: ${updated.join(', ')}`);
         }
         persistAllData();
         updateRollbackUI();
@@ -989,11 +1033,7 @@
       }
     }
 
-    // ==========================================
-    // 🌟 全量备份与恢复引擎（绝对保障 API 配置 100% 存取）
-    // ==========================================
     function exportProjectJson() {
-      // 保证 apiConfig 与当前输入框内容实时同步
       const urlInput = document.getElementById('apiBaseUrl');
       const keyInput = document.getElementById('apiKey');
       const modelInput = document.getElementById('customModelInput');
@@ -1004,7 +1044,7 @@
 
       const payload = {
         app: "AI_WEB_STUDIO_MICROSCOPIC",
-        version: "18.8",
+        version: "19.0",
         virtualFiles,
         projectMap,
         chatHistory,
@@ -1033,14 +1073,12 @@
             remoteModels = data.remoteModels || [];
             sandboxStorage = data.sandboxStorage || {};
             
-            // 🌟 1. 彻底恢复 API 状态
             const importedApi = data.apiConfig || {};
             apiConfig.baseUrl = importedApi.baseUrl || data.apiBaseUrl || '';
             apiConfig.apiKey = importedApi.apiKey || data.apiKey || '';
             apiConfig.model = importedApi.model || data.selectedModel || data.model || '';
             selectedModel = apiConfig.model;
 
-            // 🌟 2. 强行同步至所有输入框和列表
             refreshApiUI();
 
             lastSnapshotState = null;
@@ -1050,11 +1088,10 @@
             persistAllData(); 
             updateRollbackUI();
             
-            // 清空文件选择框，允许连续重新导入
             document.getElementById('jsonFileInput').value = '';
 
-            showToast('🎉 全量数据、API 配置与所选模型已 100% 完整还原！'); 
-            switchBottomTab('api'); // 自动跳转至 API 面板呈现数据
+            showToast('🎉 全量数据与 API 设置已 100% 完整还原！'); 
+            switchBottomTab('api');
           }
         } catch (err) { alert('导入失败：' + err.message); }
       };
@@ -1132,19 +1169,30 @@
       persistAllData(); 
     }
 
+    // 🌟 核心气泡净化渲染器：彻底剔除一切代码块与标签，只留大白话！
     function renderChatMessages() {
       const box = document.getElementById('chatMessages');
       if (chatHistory.length === 0) {
-        box.innerHTML = `<div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm"><div class="font-bold text-zinc-900 text-sm">🛠️ 显微镜级大白话无忧创作坊</div><p>直接用通俗的大白话描述需求。随时点击顶部一键生成详尽全景档案。</p></div>`;
+        box.innerHTML = `<div class="bg-zinc-50 border border-zinc-200/80 p-4 rounded-2xl space-y-2 text-zinc-600 shadow-sm"><div class="font-bold text-zinc-900 text-sm">🛠️ 显微镜级大白话无忧创作坊</div><p>直接用通俗的大白话描述需求。数据已全面开启本地无损自动保存。</p></div>`;
         return;
       }
       box.innerHTML = chatHistory.map((msg, index) => {
         if (msg.role === 'user') {
           return `<div class="flex flex-col items-end msg-container" data-index="${index}"><div class="msg-bubble bg-zinc-900 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] shadow-sm cursor-pointer">${escapeHtml(msg.content)}</div></div>`;
         } else if (msg.role === 'assistant') {
-          const clean = msg.content.replace(/<file[\s\S]*?<\/file>/gi, '').replace(/<delete_file[\s\S]*?\/>/gi, '').replace(/<project_map>[\s\S]*?<\/project_map>/gi, '').trim() || '已完成。';
-          const filesTag = msg.updatedFiles && msg.updatedFiles.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2">${msg.updatedFiles.map(f => `<span class="bg-zinc-100 border border-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-mono">⚡ ${escapeHtml(f)}</span>`).join('')}</div>` : '';
-          return `<div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}"><div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer"><div>${escapeHtml(clean)}</div>${filesTag}</div></div>`;
+          // 强力清洗：剥除 file 标签、图谱标签、以及一切 markdown 代码块
+          let clean = msg.content
+            .replace(/<file[\s\S]*?<\/file>/gi, '')
+            .replace(/<delete_file[\s\S]*?\/>/gi, '')
+            .replace(/<project_map>[\s\S]*?<\/project_map>/gi, '')
+            .replace(/```[\s\S]*?```/gi, '')
+            .trim();
+          
+          if (!clean) clean = '✨ 已完成全部代码编写与文件更新。';
+          
+          const filesTag = msg.updatedFiles && msg.updatedFiles.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2.5 pt-2 border-t border-zinc-100">${msg.updatedFiles.map(f => `<span class="bg-zinc-100 border border-zinc-200 text-zinc-700 px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium">⚡ ${escapeHtml(f)}</span>`).join('')}</div>` : '';
+          
+          return `<div class="flex flex-col space-y-1 max-w-[90%] msg-container" data-index="${index}"><div class="msg-bubble bg-white border border-zinc-200 text-zinc-800 p-3.5 rounded-2xl rounded-tl-xs shadow-sm whitespace-pre-wrap cursor-pointer leading-relaxed"><div>${escapeHtml(clean)}</div>${filesTag}</div></div>`;
         } else {
           return `<div class="text-left text-[11px] text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200 my-1 msg-container whitespace-pre-wrap cursor-pointer" data-index="${index}">${escapeHtml(msg.content)}</div>`;
         }
@@ -1173,7 +1221,7 @@
 
     function executeMenuCopy() {
       if (selectedActionIndex === null || !chatHistory[selectedActionIndex]) return;
-      const text = chatHistory[selectedActionIndex].content.replace(/<file[\s\S]*?<\/file>/gi, '').replace(/<delete_file[\s\S]*?\/>/gi, '').replace(/<project_map>[\s\S]*?<\/project_map>/gi, '').trim();
+      const text = chatHistory[selectedActionIndex].content.replace(/<file[\s\S]*?<\/file>/gi, '').replace(/<delete_file[\s\S]*?\/>/gi, '').replace(/<project_map>[\s\S]*?<\/project_map>/gi, '').replace(/```[\s\S]*?```/gi, '').trim();
       if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('📋 已复制！'));
       closeActionMenu();
     }
@@ -1361,7 +1409,8 @@
       }
     }
 
-    function persistAllData(showNotif = false) {
+    // 🌟 自动异步持久化至 IndexedDB
+    async function persistAllData(showNotif = false) {
       const urlInput = document.getElementById('apiBaseUrl');
       const keyInput = document.getElementById('apiKey');
       const modelInput = document.getElementById('customModelInput');
@@ -1382,19 +1431,20 @@
         selectedModel: apiConfig.model || selectedModel, 
         apiConfig: { ...apiConfig } 
       };
+
       try { 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); 
-        if (showNotif) showToast('💾 保存成功！'); 
+        await dbSet(DB_KEY, payload);
+        if (showNotif) showToast('💾 已永久保存至本地数据库！'); 
       } catch (e) { 
         if (showNotif) showToast('❌ 保存失败'); 
       }
     }
 
-    function loadStateFromStorage() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+    // 🌟 初始化自动从 IndexedDB 完整加载
+    async function loadStateFromStorage() {
       try {
-        const s = JSON.parse(raw);
+        const s = await dbGet(DB_KEY);
+        if (!s) return;
         virtualFiles = s.virtualFiles || {}; 
         projectMap = s.projectMap || {}; 
         chatHistory = s.chatHistory || []; 
@@ -1414,7 +1464,9 @@
         refreshUIElements(); 
         refreshApiUI();
         updateRollbackUI();
-      } catch (e) {}
+      } catch (e) {
+        console.error('加载本地数据库失败', e);
+      }
     }
 
     function exportZip() {
@@ -1423,11 +1475,12 @@
       zip.generateAsync({ type: "blob" }).then(b => saveAs(b, "ai-web-project.zip"));
     }
 
-    function resetEntireProject() {
-      if (confirm('⚠️ 清空所有数据？')) {
+    async function resetEntireProject() {
+      if (confirm('⚠️ 确认清空所有工程数据及数据库缓存？')) {
         virtualFiles = {}; projectMap = {}; chatHistory = []; sandboxStorage = {}; lastSnapshotState = null;
-        localStorage.removeItem(STORAGE_KEY); renderChatMessages(); refreshPreview(); refreshUIElements(); updateRollbackUI();
-        showToast('已清空'); switchBottomTab('maker');
+        await dbDelete(DB_KEY);
+        renderChatMessages(); refreshPreview(); refreshUIElements(); updateRollbackUI();
+        showToast('已彻底清空'); switchBottomTab('maker');
       }
     }
 
@@ -1441,7 +1494,6 @@
     function refreshUIElements() {
       document.getElementById('topFileCount').innerText = `${Object.keys(virtualFiles).length}文件`;
       document.getElementById('topFeatureCount').innerText = `${Object.keys(projectMap).length}档案`;
-      const sEl = document.getElementById('sandboxDataCountLabel'); if (sEl) sEl.innerText = `已同步 ${Object.keys(sandboxStorage).length} 项网页数据`;
     }
     function setLoading(isLoading, text = "") {
       const p = document.getElementById('stepProgress'); document.getElementById('stepProgressText').innerText = text;
